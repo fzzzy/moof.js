@@ -1,0 +1,16 @@
+
+#tileset {
+  position: fixed;
+  top: 2em;
+  right: 0px;
+  border: 1px solid black;
+}
+
+#tileset img {
+  height: 32px;
+  width: 32px;
+}
+
+#tileset div {
+  height: 32px;
+}

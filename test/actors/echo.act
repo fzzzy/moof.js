@@ -1,0 +1,7 @@
+
+
+function* main() {
+  let msg = yield recv('msg');
+  console.log(msg.data);
+}
+

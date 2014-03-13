@@ -1,0 +1,10 @@
+
+
+function* main() {
+  ui('msg', 'hello world');
+  while (true) {
+    let msg = yield recv();
+    ui(msg.pattern, msg.data);
+  }
+}
+

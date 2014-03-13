@@ -1,0 +1,30 @@
+
+
+function* main() {
+  let participants = new Map();
+  let tiles = [];
+  for (let y = 0; y < 16; y++) {
+    let row = [];
+    for (let x = 0; x < 16; x++) {
+      row.push(0);
+    }
+    tiles.push(row);
+  }
+  while(true) {
+    let msg = yield recv();
+    if (msg.pattern === 'join') {
+      let addr = address(msg.data);
+      participants[msg.data] = addr;
+      addr('tiles', tiles);
+    }
+    if (msg.pattern === 'part') {
+      participants[msg.data] = undefined;
+    }
+    if (msg.pattern === 'msg') {
+      for (let i in participants) {
+        participants[i]('msg', msg.data);
+      }
+    }
+  }
+}
+

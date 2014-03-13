@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello</title>
+    <script src="engine.io.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+  </head>
+  <body>
+  <div id="tileset"></div>
+  <form id="submit-input">
+    <input name="msg" />
+    <button>Send</button>
+  </form>
+  <script>
+
+var socket = new eio.Socket('ws://localhost:8080/');
+socket.on('open', function () {
+  console.log("open");
+  socket.on('message', function (data) {
+    var msg = JSON.parse(data);
+    if (msg.pattern === "msg") {
+      var node = document.createElement("div");
+      node.textContent = msg.data;
+      document.body.appendChild(node);   
+    } else if (msg.pattern === "tiles") {
+      for (var y = 0; y < 16; y++) {
+        for (var x = 0; x < 16; x++) {
+          tileimages[y][x].src = "tiles/" + msg.data[y][x] + ".png";
+        }
+      }   
+    } else {
+      console.log(data);
+    }
+  });
+  socket.on('close', function () { console.log("close"); });
+});
+
+document.getElementById("submit-input").onsubmit = function(e) {
+  e.preventDefault();
+  socket.send(JSON.stringify({'pattern': 'msg', 'data': this.msg.value}));
+  this.msg.value = "";
+}
+
+var tileset = document.getElementById("tileset");
+var tileimages = [];
+
+for (var y = 0; y < 16; y++) {
+  var row = document.createElement("div");
+  var rowarray = [];
+  for (var x = 0; x < 16; x++) {
+    var img = document.createElement("img");
+    rowarray.push(img);
+    row.appendChild(img);
+  }
+  tileimages.push(rowarray);
+  tileset.appendChild(row);
+}
+  </script>
+  </body>
+</html>

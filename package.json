@@ -1,0 +1,9 @@
+{
+  "name": "moof.js",
+  "description": "A multiuser web thing",
+  "dependencies": {
+    "engine.io": "1.0.3",
+    "mocha": "1.17.1",
+    "node-static": "0.7.3"
+  }
+}
