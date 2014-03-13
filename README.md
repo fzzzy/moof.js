@@ -7,13 +7,13 @@ Requires node 0.11 or higher.
 
 To install dependencies:
 
-  npm install
+> npm install
 
 To run tests:
 
-  mocha --harmony
+> mocha --harmony
 
 To run the server:
 
-  node --harmony server.js
+> node --harmony server.js
 
