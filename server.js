@@ -43,7 +43,7 @@ engine.attach(http).on('connection', function (socket) {
         pos: "" + random(16) + "," + random(16)});
       console.log("connected");
     } else if (msg.pattern === "msg") {
-      room("msg", msg.data);
+      room("msg", {address: socket.id, msg: msg.data});
     } else if (msg.pattern === "go") {
       room("go", {address: socket.id, pos: msg.data});
     }
