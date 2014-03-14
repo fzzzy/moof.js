@@ -1,4 +1,16 @@
 
+#login-box {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  background-color: white;
+  z-index: 100;
+  padding: 3em;
+}
+
+
 #tileset {
   position: fixed;
   top: 2em;
@@ -19,5 +31,6 @@
   position: absolute;
   background-color: white;
   border: 1px solid #efefef;
+  cursor: pointer;
 }
 

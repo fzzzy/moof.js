@@ -6,12 +6,29 @@
     <link rel="stylesheet" type="text/css" href="styles.css" />
   </head>
   <body>
+  <form id="login-box">
+    <h1>Welcome to moof</h1>
+    <label for="name">Name</label>
+    <input name="name" />
+    <button>Log in</button>
+  </form>
   <div id="tileset"></div>
   <form id="submit-input">
     <input name="msg" />
     <button>Send</button>
   </form>
   <script>
+
+var login_box = document.getElementById("login-box");
+
+window.onload = function() {
+  login_box.name.focus();
+}
+
+login_box.onsubmit = function(e) {
+  e.preventDefault();
+  login(login_box.name.value);
+}
 
 function add_player(pl) {
   var node = document.createElement("span");
@@ -21,46 +38,53 @@ function add_player(pl) {
   var split = pl.pos.split(',');
   tile = tileimages[parseInt(split[1])][parseInt(split[0])];
   console.log(tile.offsetTop, tile.offsetLeft);
-  node.style.top = tile.offsetTop + "px";
-  node.style.left = tile.offsetLeft + "px";
+  node.style.top = (tile.offsetTop + 4) + "px";
+  node.style.left = (tile.offsetLeft + 4) + "px";
   tileset.appendChild(node);
 }
 
-var socket = new eio.Socket('ws://localhost:8080/');
-socket.on('open', function () {
-  console.log("open");
-  socket.on('message', function (data) {
-    var msg = JSON.parse(data);
-    if (msg.pattern === "msg") {
-      var node = document.createElement("div");
-      node.textContent = msg.data;
-      document.body.appendChild(node);   
-    } else if (msg.pattern === "room") {
-      console.log(data);
-      for (var y = 0; y < 16; y++) {
-        for (var x = 0; x < 16; x++) {
-          tileimages[y][x].src = "tiles/" + msg.data.tiles[y][x] + ".png";
-        }
-      }
-      for (var i = 0; i < msg.data.players.length; i++) {
-        add_player(msg.data.players[i]);
-      }
-    } else if (msg.pattern === "join") {
-      add_player(msg.data);
-    } else if (msg.pattern === "part") {
-      var player_node = document.getElementById(msg.data.address);
-      player_node.parentNode.removeChild(player_node);
-    } else {
-      console.log(data);
-    }
-  });
-  socket.on('close', function () { console.log("close"); });
-});
+function login(player_name) {
+  var socket = new eio.Socket('ws://localhost:8080/');
+  socket.on('open', function () {
+    socket.send(
+      JSON.stringify(
+        {pattern: "login", data: {name: player_name}}));
 
-document.getElementById("submit-input").onsubmit = function(e) {
-  e.preventDefault();
-  socket.send(JSON.stringify({'pattern': 'msg', 'data': this.msg.value}));
-  this.msg.value = "";
+    socket.on('message', function (data) {
+      var msg = JSON.parse(data);
+      if (msg.pattern === "msg") {
+        var node = document.createElement("div");
+        node.textContent = msg.data;
+        document.body.appendChild(node);   
+      } else if (msg.pattern === "room") {
+        console.log(data);
+        for (var y = 0; y < 16; y++) {
+          for (var x = 0; x < 16; x++) {
+            tileimages[y][x].src = "tiles/" + msg.data.tiles[y][x] + ".png";
+          }
+        }
+        for (var i = 0; i < msg.data.players.length; i++) {
+          add_player(msg.data.players[i]);
+        }
+      } else if (msg.pattern === "join") {
+        add_player(msg.data);
+      } else if (msg.pattern === "part") {
+        var player_node = document.getElementById(msg.data.address);
+        player_node.parentNode.removeChild(player_node);
+      } else {
+        console.log(data);
+      }
+    });
+    socket.on('close', function () { console.log("close"); });
+  });
+  
+  document.getElementById("submit-input").onsubmit = function(e) {
+    e.preventDefault();
+    socket.send(JSON.stringify({'pattern': 'msg', 'data': this.msg.value}));
+    this.msg.value = "";
+  };
+
+  document.getElementById("login-box").style.display = "none";
 }
 
 var tileset = document.getElementById("tileset");
@@ -77,6 +101,7 @@ for (var y = 0; y < 16; y++) {
   tileimages.push(rowarray);
   tileset.appendChild(row);
 }
+
   </script>
   </body>
 </html>

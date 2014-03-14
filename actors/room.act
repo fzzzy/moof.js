@@ -14,6 +14,13 @@ function* main() {
     let msg = yield recv();
     if (msg.pattern === 'join') {
       let addr = address(msg.data.address);
+
+      participants[msg.data.address] = {
+        cast: addr,
+        address: msg.data.address,
+        pos: msg.data.pos,
+        name: msg.data.name};
+
       let players = [];
       for (let i in participants) {
         players.push({
@@ -24,11 +31,6 @@ function* main() {
           'join',
           msg.data);
       }
-      participants[msg.data.address] = {
-        cast: addr,
-        address: msg.data.address,
-        pos: msg.data.pos,
-        name: msg.data.name};
 
       addr('room', {tiles: tiles, players: players});
     }

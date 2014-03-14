@@ -6,8 +6,6 @@ let actors = require('./actors.js'),
 
 let vat = actors.Vat();
 
-let names = ['Stan', 'Bob', 'Phil', 'Jane', 'Ann', 'Carol'];
-
 function act(name) {
   return fs.readFileSync("actors/" + name + ".act");
 }
@@ -30,21 +28,21 @@ function random(max) {
 }
 
 engine.attach(http).on('connection', function (socket) {
-  let name = names[random(names.length)];
-  function ui_func(pat, data) {
-    //console.log("ui said", pat, data);
-    socket.send(JSON.stringify({pattern: pat, data: data}));
-  }
-  vat.spawn(act("player"), socket.id, ui_func);
-  room('join', {
-    address: socket.id,
-    name: name,
-    pos: "" + random(16) + "," + random(16)});
-  console.log("connected");
   socket.on('message', function(data) {
     console.log("got message", data);
     var msg = JSON.parse(data);
-    if (msg.pattern === "msg") {
+    if (msg.pattern === "login") {
+      function ui_func(pat, data) {
+        //console.log("ui said", pat, data);
+        socket.send(JSON.stringify({pattern: pat, data: data}));
+      }
+      vat.spawn(act("player"), socket.id, ui_func);
+      room('join', {
+        address: socket.id,
+        name: msg.data.name,
+        pos: "" + random(16) + "," + random(16)});
+      console.log("connected");
+    } else if (msg.pattern === "msg") {
       room("msg", msg.data);
     }
   });
