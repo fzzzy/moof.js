@@ -27,9 +27,11 @@ function* main() {
           name: participants[i].name,
           pos: participants[i].pos,
           address: participants[i].address});
-        participants[i].cast(
-          'join',
-          msg.data);
+        if (participants[i].address !== msg.data.address) {
+          participants[i].cast(
+            'join',
+            msg.data);
+        }
       }
 
       addr('room', {tiles: tiles, players: players});
