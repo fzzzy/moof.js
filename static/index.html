@@ -13,6 +13,37 @@
     <button>Log in</button>
   </form>
   <div id="tileset"></div>
+  <select id="dig">
+    <option value="move">Move</option>
+    <option value="1">1 Sand</option>
+    <option value="2">2 Grass</option>
+    <option value="3">3 Rock</option>
+    <option value="4">4 Water</option>
+    <option value="5">5 Water, Grass Facing NW</option>
+    <option value="6">6 Water, Grass Facing N</option>
+    <option value="7">7 Water, Grass Facing NE</option>
+    <option value="8">8 Water, Grass Facing W</option>
+    <option value="9">9 Water, Grass Facing E</option>
+    <option value="10">10 Water, Grass Facing SW</option>
+    <option value="11">11 Water, Grass Facing S</option>
+    <option value="12">12 Water, Grass Facing SE</option>
+    <option value="13">13 Grass, Water Facing SE</option>
+    <option value="14">14 Grass, Water Facing SW</option>
+    <option value="15">15 Grass, Water Facing NE</option>
+    <option value="16">16 Grass, Water Facing NW</option>
+    <option value="17">17 Sand, Grass Facing NW</option>
+    <option value="18">18 Sand, Grass Facing N</option>
+    <option value="19">19 Sand, Grass Facing NE</option>
+    <option value="20">20 Sand, Grass Facing W</option>
+    <option value="21">21 Sand, Grass Facing E</option>
+    <option value="22">22 Sand, Grass Facing SW</option>
+    <option value="23">23 Sand, Grass Facing S</option>
+    <option value="24">24 Sand, Grass Facing SE</option>
+    <option value="25">25 Grass, Sand Facing SE</option>
+    <option value="26">26 Grass, Sand Facing SW</option>
+    <option value="27">27 Grass, Sand Facing NE</option>
+    <option value="28">28 Grass, Sand Facing NW</option>
+  </select>
   <form id="submit-input">
     <input name="msg" />
     <button>Send</button>
@@ -20,6 +51,7 @@
   <script>
 
 var login_box = document.getElementById("login-box");
+var dig = document.getElementById("dig");
 
 window.onload = function() {
   login_box.name.focus();
@@ -31,6 +63,7 @@ login_box.onsubmit = function(e) {
 }
 
 function login(player_name) {
+  var pos = "";
   function add_player(pl) {
     var node = document.createElement("span");
     node.id = pl.address;
@@ -56,6 +89,9 @@ function login(player_name) {
         var node = document.createElement("div");
         node.textContent = msg.data;
         document.body.appendChild(node);   
+      } else if (msg.pattern === "login") {
+        pos = msg.data.pos;
+        console.log("POS", pos);
       } else if (msg.pattern === "room") {
         console.log(data);
         for (var y = 0; y < 16; y++) {
@@ -78,6 +114,10 @@ function login(player_name) {
         console.log(tile.offsetTop, tile.offsetLeft);
         node.style.top = (tile.offsetTop + 4) + "px";
         node.style.left = (tile.offsetLeft + 4) + "px";
+      } else if (msg.pattern === "dig") {
+        var split = msg.data.pos.split(",");
+        tileimages[parseInt(split[1])][parseInt(split[0])].src = (
+          "tiles/" + msg.data.tile + ".png");
       } else {
         console.log(data);
       }
@@ -87,7 +127,14 @@ function login(player_name) {
 
   function create_onclick(x, y) {
     return function(e) {
-      socket.send(JSON.stringify({pattern: 'go', data: "" + x + "," + y}));
+      console.log("dig.value", dig.value, x, y);
+      if (dig.value === "move") {
+        socket.send(JSON.stringify({pattern: 'go', data: "" + x + "," + y}));
+      } else {
+        socket.send(
+          JSON.stringify(
+            {pattern: 'dig', data: {'pos': "" + x + "," + y, 'tile': dig.value}}));
+      }
     }
   }
   

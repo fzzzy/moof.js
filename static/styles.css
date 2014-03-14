@@ -35,3 +35,10 @@
   cursor: pointer;
 }
 
+#dig {
+  position: absolute;
+  font-size: x-large;
+  top: 0px;
+  right: 0px;
+  width: 148px;
+}

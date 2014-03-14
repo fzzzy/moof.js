@@ -48,9 +48,18 @@ function* main() {
           'msg',
           participants[msg.data.address].name + ': ' + msg.data.msg);
       }
-    } if (msg.pattern === 'go') {
+    }
+    if (msg.pattern === 'go') {
       for (let i in participants) {
         participants[i].cast('go', msg.data);
+      }
+    }
+    if (msg.pattern === 'dig') {
+      let split = msg.data.pos.split(",");
+      tiles[parseInt(split[1])][parseInt(split[0])] = parseInt(msg.data.tile);
+      console.log("NEWTILES", tiles);
+      for (let i in participants) {
+        participants[i].cast('dig', msg.data);
       }
     }
   }
