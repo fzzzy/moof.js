@@ -44,6 +44,8 @@ engine.attach(http).on('connection', function (socket) {
       console.log("connected");
     } else if (msg.pattern === "msg") {
       room("msg", msg.data);
+    } else if (msg.pattern === "go") {
+      room("go", {address: socket.id, pos: msg.data});
     }
   });
   socket.on('close', function () {

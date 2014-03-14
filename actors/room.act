@@ -42,9 +42,9 @@ function* main() {
         participants[i].cast('part', msg.data);
       }
     }
-    if (msg.pattern === 'msg') {
+    if (msg.pattern === 'msg' || msg.pattern === 'go') {
       for (let i in participants) {
-        participants[i]('msg', msg.data);
+        participants[i].cast(msg.pattern, msg.data);
       }
     }
   }

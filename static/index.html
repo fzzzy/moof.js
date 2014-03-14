@@ -30,20 +30,20 @@ login_box.onsubmit = function(e) {
   login(login_box.name.value);
 }
 
-function add_player(pl) {
-  var node = document.createElement("span");
-  node.id = pl.address;
-  node.textContent = pl.name;
-  node.className = "player";
-  var split = pl.pos.split(',');
-  tile = tileimages[parseInt(split[1])][parseInt(split[0])];
-  console.log(tile.offsetTop, tile.offsetLeft);
-  node.style.top = (tile.offsetTop + 4) + "px";
-  node.style.left = (tile.offsetLeft + 4) + "px";
-  tileset.appendChild(node);
-}
-
 function login(player_name) {
+  function add_player(pl) {
+    var node = document.createElement("span");
+    node.id = pl.address;
+    node.textContent = pl.name;
+    node.className = "player";
+    var split = pl.pos.split(',');
+    tile = tileimages[parseInt(split[1])][parseInt(split[0])];
+    console.log(tile.offsetTop, tile.offsetLeft);
+    node.style.top = (tile.offsetTop + 4) + "px";
+    node.style.left = (tile.offsetLeft + 4) + "px";
+    tileset.appendChild(node);
+  }
+
   var socket = new eio.Socket('ws://localhost:8080/');
   socket.on('open', function () {
     socket.send(
@@ -71,13 +71,42 @@ function login(player_name) {
       } else if (msg.pattern === "part") {
         var player_node = document.getElementById(msg.data.address);
         player_node.parentNode.removeChild(player_node);
+      } else if (msg.pattern === "go") {
+        var node = document.getElementById(msg.data.address);
+        var split = msg.data.pos.split(',');
+        tile = tileimages[parseInt(split[1])][parseInt(split[0])];
+        console.log(tile.offsetTop, tile.offsetLeft);
+        node.style.top = (tile.offsetTop + 4) + "px";
+        node.style.left = (tile.offsetLeft + 4) + "px";
       } else {
         console.log(data);
       }
     });
     socket.on('close', function () { console.log("close"); });
   });
+
+  function create_onclick(x, y) {
+    return function(e) {
+      socket.send(JSON.stringify({pattern: 'go', data: "" + x + "," + y}));
+    }
+  }
   
+  var tileset = document.getElementById("tileset");
+  var tileimages = [];
+  
+  for (var y = 0; y < 16; y++) {
+    var row = document.createElement("div");
+    var rowarray = [];
+    for (var x = 0; x < 16; x++) {
+      var img = document.createElement("img");
+      img.onclick = create_onclick(x, y);
+      rowarray.push(img);
+      row.appendChild(img);
+    }
+    tileimages.push(rowarray);
+    tileset.appendChild(row);
+  }
+
   document.getElementById("submit-input").onsubmit = function(e) {
     e.preventDefault();
     socket.send(JSON.stringify({'pattern': 'msg', 'data': this.msg.value}));
@@ -85,21 +114,6 @@ function login(player_name) {
   };
 
   document.getElementById("login-box").style.display = "none";
-}
-
-var tileset = document.getElementById("tileset");
-var tileimages = [];
-
-for (var y = 0; y < 16; y++) {
-  var row = document.createElement("div");
-  var rowarray = [];
-  for (var x = 0; x < 16; x++) {
-    var img = document.createElement("img");
-    rowarray.push(img);
-    row.appendChild(img);
-  }
-  tileimages.push(rowarray);
-  tileset.appendChild(row);
 }
 
   </script>

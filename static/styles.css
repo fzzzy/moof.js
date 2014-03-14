@@ -21,6 +21,7 @@
 #tileset img {
   height: 32px;
   width: 32px;
+  cursor: pointer;
 }
 
 #tileset div {
