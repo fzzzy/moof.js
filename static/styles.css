@@ -14,3 +14,10 @@
 #tileset div {
   height: 32px;
 }
+
+.player {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #efefef;
+}
+

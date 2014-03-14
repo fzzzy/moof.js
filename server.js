@@ -6,6 +6,8 @@ let actors = require('./actors.js'),
 
 let vat = actors.Vat();
 
+let names = ['Stan', 'Bob', 'Phil', 'Jane', 'Ann', 'Carol'];
+
 function act(name) {
   return fs.readFileSync("actors/" + name + ".act");
 }
@@ -23,13 +25,21 @@ let http = require('http').createServer(function(request, response) {
   }).resume();
 }).listen(8080);
 
+function random(max) {
+  return Math.floor(Math.random() * max);
+}
+
 engine.attach(http).on('connection', function (socket) {
+  let name = names[random(names.length)];
   function ui_func(pat, data) {
     //console.log("ui said", pat, data);
     socket.send(JSON.stringify({pattern: pat, data: data}));
   }
   vat.spawn(act("player"), socket.id, ui_func);
-  room('join', socket.id);
+  room('join', {
+    address: socket.id,
+    name: name,
+    pos: "" + random(16) + "," + random(16)});
   console.log("connected");
   socket.on('message', function(data) {
     console.log("got message", data);
@@ -40,6 +50,7 @@ engine.attach(http).on('connection', function (socket) {
   });
   socket.on('close', function () {
     console.log("close");
+    room('part', {address: socket.id});
   });
 });
 
