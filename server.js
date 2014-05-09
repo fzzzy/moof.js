@@ -2,7 +2,8 @@
 "use strict";
 
 let actors = require('./actors.js'),
-    fs = require('fs');
+    fs = require('fs'),
+    uuid = require('node-uuid');
 
 let vat = actors.Vat();
 
@@ -10,7 +11,8 @@ function act(name) {
   return fs.readFileSync("actors/" + name + ".act");
 }
 
-let room = vat.spawn(act("room"), "room-id");
+let room_id = uuid.v4();
+let room = vat.spawn(act("room"), room_id);
 
 let engine = require('engine.io');
 
@@ -28,34 +30,40 @@ function random(max) {
 }
 
 engine.attach(http).on('connection', function (socket) {
+  let logged_in = false;
+  let my_act = null;
+
   socket.on('message', function(data) {
-    console.log("got message", data);
     var msg = JSON.parse(data);
-    if (msg.pattern === "login") {
-      function ui_func(pat, data) {
-        //console.log("ui said", pat, data);
-        socket.send(JSON.stringify({pattern: pat, data: data}));
-      }
-      var pos = random(16) + "," + random(16);
-      socket.send(JSON.stringify(
-        {pattern: 'login', data: {name: msg.data.name, pos: pos}}));
-      vat.spawn(act("player"), socket.id, ui_func);
-      room('join', {
-        address: socket.id,
-        name: msg.data.name,
-        pos: "" + pos});
-      console.log("connected");
-    } else if (msg.pattern === "msg") {
-      room("msg", {address: socket.id, msg: msg.data});
-    } else if (msg.pattern === "go") {
-      room("go", {address: socket.id, pos: msg.data});
-    } else if (msg.pattern === "dig") {
-      room("dig", msg.data);
+    if (logged_in) {
+      my_act(msg.pattern, msg.data);
+      return;
     }
+    if (msg.pattern !== "login") {
+      console.log("ignored message because not logged in", data);
+      return;
+    }
+
+    function ui_func(pat, data) {
+      //console.log("ui said", pat, data);
+      socket.send(JSON.stringify({pattern: pat, data: data}));
+    }
+    var pos = random(16) + "," + random(16);
+    socket.send(JSON.stringify(
+      {pattern: 'login', data: {name: msg.data.name, pos: pos}}));
+    my_act = vat.spawn(act("player"), socket.id, ui_func);
+    my_act('join', room_id);
+    room('join', {
+      addr: socket.id,
+      name: msg.data.name,
+      pos: "" + pos});
+//    console.log("connected");
+    logged_in = true;
   });
+
   socket.on('close', function () {
     console.log("close");
-    room('part', {address: socket.id});
+    room('part', {addr: socket.id});
   });
 });
 

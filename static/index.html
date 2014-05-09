@@ -66,7 +66,8 @@ function login(player_name) {
   var pos = "";
   function add_player(pl) {
     var node = document.createElement("span");
-    node.id = pl.address;
+    console.log("add_player", pl);
+    node.id = pl.addr;
     node.textContent = pl.name;
     node.className = "player";
     var split = pl.pos.split(',');
@@ -85,11 +86,8 @@ function login(player_name) {
 
     socket.on('message', function (data) {
       var msg = JSON.parse(data);
-      if (msg.pattern === "msg") {
-        var node = document.createElement("div");
-        node.textContent = msg.data;
-        document.body.appendChild(node);   
-      } else if (msg.pattern === "login") {
+      console.log('got message', data);
+      if (msg.pattern === "login") {
         pos = msg.data.pos;
         console.log("POS", pos);
       } else if (msg.pattern === "room") {
@@ -102,20 +100,25 @@ function login(player_name) {
         for (var i = 0; i < msg.data.players.length; i++) {
           add_player(msg.data.players[i]);
         }
-      } else if (msg.pattern === "join") {
+      } else if (msg.pattern === "room_msg") {
+        var node = document.createElement("div");
+        node.textContent = msg.data.msg;
+        document.body.appendChild(node);   
+      } else if (msg.pattern === "room_join") {
         add_player(msg.data);
-      } else if (msg.pattern === "part") {
-        var player_node = document.getElementById(msg.data.address);
+      } else if (msg.pattern === "room_part") {
+        var player_node = document.getElementById(msg.data.addr);
         player_node.parentNode.removeChild(player_node);
-      } else if (msg.pattern === "go") {
-        var node = document.getElementById(msg.data.address);
-        var split = msg.data.pos.split(',');
+      } else if (msg.pattern === "room_go") {
+        console.log("looking for player", msg.data.addr);
+        var node = document.getElementById(msg.data.addr);
+        var split = msg.data.go.split(',');
         tile = tileimages[parseInt(split[1])][parseInt(split[0])];
         console.log(tile.offsetTop, tile.offsetLeft);
         node.style.top = (tile.offsetTop + 4) + "px";
         node.style.left = (tile.offsetLeft + 4) + "px";
-      } else if (msg.pattern === "dig") {
-        var split = msg.data.pos.split(",");
+      } else if (msg.pattern === "room_dig") {
+        var split = msg.data.dig.split(",");
         tileimages[parseInt(split[1])][parseInt(split[0])].src = (
           "tiles/" + msg.data.tile + ".png");
       } else {
@@ -133,7 +136,7 @@ function login(player_name) {
       } else {
         socket.send(
           JSON.stringify(
-            {pattern: 'dig', data: {'pos': "" + x + "," + y, 'tile': dig.value}}));
+            {pattern: 'dig', data: {'dig': "" + x + "," + y, 'tile': dig.value}}));
       }
     }
   }

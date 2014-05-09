@@ -34,7 +34,7 @@ exports.Vat = function Vat(global_logger) {
           clearTimeout(ctx.__timeout);
           ctx.__timeout = null;
         }
-        iterate(ctx, {pattern: waitforwhat, data: JSON.parse(val)});
+        iterate(ctx, {pattern: waitforwhat, data: JSON.parse(val.data), addr: val.addr});
         return;
       }
     }
@@ -68,21 +68,38 @@ exports.Vat = function Vat(global_logger) {
     }
   }
 
-  function address(name) {
-    //console.log("looking up ", name, "in", Object.getOwnPropertyNames(actors));
-    if (actors[name] === undefined) {
-      actors[name] = {
-        early_mailbox: [],
-        cast: function cast(pattern, msg) {
-          if (actors[name].early_mailbox !== undefined) {
-            actors[name].early_mailbox.push([pattern, JSON.stringify(msg)]);            
-          } else {
-            actors[name].cast(pattern, msg);
+  function create_address(my_name) {
+    function address(name) {
+      //console.log("looking up ", name, "in", Object.getOwnPropertyNames(actors));
+      if (actors[name] === undefined) {
+        actors[name] = {
+          early_mailbox: [],
+          cast: function cast(pattern, msg, return_address) {
+            //console.log("address_cast", pattern, msg, return_address, my_name);
+            if (return_address === true) {
+              return_address = my_name;
+            } else {
+              return_address = undefined;
+            }
+            if (actors[name].early_mailbox !== undefined) {
+              actors[name].early_mailbox.push([pattern, JSON.stringify(msg), return_address]);
+            } else {
+              actors[name].cast(pattern, msg, return_address);
+            }
           }
+        };
+      }
+      let addr_cast = actors[name].cast;
+      return function cast(pattern, msg, return_address) {
+        if (return_address === true) {
+          return_address = my_name;
+        } else {
+          return_address = undefined;
         }
-      };
+        addr_cast(pattern, msg, return_address)
+      }
     }
-    return actors[name].cast;
+    return address;
   }
 
   function spawn(code, name, ui) {
@@ -111,12 +128,12 @@ exports.Vat = function Vat(global_logger) {
         return {recv: Array.prototype.slice.call(arguments, 1), timeout: time};
       },
       spawn: spawn,
-      address: address
+      address: create_address(name)
     });
     vm.runInContext('"use strict"; ' + code, ctx, "main.js");
     vm.runInContext("var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, "mainloop.js");
 
-    let cast = function cast(pattern, msg) {
+    let cast = function cast(pattern, msg, return_address) {
       //console.log("casting", pattern, msg);
       if (ctx.__mailbox[pattern] === undefined) {
         ctx.__mailbox[pattern] = [];
@@ -124,7 +141,10 @@ exports.Vat = function Vat(global_logger) {
       if (msg === undefined) {
         msg = {};
       }
-      ctx.__mailbox[pattern].push(JSON.stringify(msg));
+      if (return_address === true) {
+        return_address = name;
+      }
+      ctx.__mailbox[pattern].push({data: JSON.stringify(msg), addr: return_address});
       if (ctx.__waiting !== null) {
         process.nextTick(function() {
           check_mailbox(ctx, ctx.__waiting);        
@@ -141,7 +161,8 @@ exports.Vat = function Vat(global_logger) {
         for (let i = 0; i < early_mailbox.length; i++) {
           let pattern = early_mailbox[i][0];
           let data = early_mailbox[i][1];
-          cast(pattern, data);
+          let return_address = early_mailbox[i][2];
+          cast(pattern, data, return_address);
         }
       }
     }
@@ -151,6 +172,6 @@ exports.Vat = function Vat(global_logger) {
     return cast;
   }
 
-  this.address = address;
+  this.address = create_address();
   this.spawn = spawn;
 };

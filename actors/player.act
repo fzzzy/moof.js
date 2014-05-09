@@ -1,10 +1,24 @@
 
 
 function* main() {
-  ui('msg', 'hello world');
+  ui('msg', 'hello worlddddd');
+  let joined_msg = yield recv('join');
+  let room_id = joined_msg.data;
+  let room = address(room_id);
+  ui('msg', 'joined ' + room_id);
   while (true) {
     let msg = yield recv();
-    ui(msg.pattern, msg.data);
+    console.log("player msg", JSON.stringify(msg));
+    //ui('msg', JSON.stringify(msg));
+    if (msg.pattern === "msg") {
+      room("msg", {msg: msg.data}, true);
+    } else if (msg.pattern === "go") {
+      room("go", {go: msg.data}, true);
+    } else if (msg.pattern === "dig") {
+      room("dig", msg.data, true);
+    } else {
+      ui(msg.pattern, msg.data);
+    }
   }
 }
 
