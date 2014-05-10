@@ -87,10 +87,7 @@ function login(player_name) {
     socket.on('message', function (data) {
       var msg = JSON.parse(data);
       console.log('got message', data);
-      if (msg.pattern === "login") {
-        pos = msg.data.pos;
-        console.log("POS", pos);
-      } else if (msg.pattern === "room") {
+      if (msg.pattern === "room") {
         console.log(data);
         for (var y = 0; y < 16; y++) {
           for (var x = 0; x < 16; x++) {
@@ -100,18 +97,21 @@ function login(player_name) {
         for (var i = 0; i < msg.data.players.length; i++) {
           add_player(msg.data.players[i]);
         }
-      } else if (msg.pattern === "room_msg") {
+      } else if (msg.pattern === "room_msg" || msg.pattern === "msg") {
         var node = document.createElement("div");
+        node.className = msg.pattern;
         node.textContent = msg.data.msg;
         document.body.appendChild(node);   
       } else if (msg.pattern === "room_join") {
         add_player(msg.data);
       } else if (msg.pattern === "room_part") {
-        var player_node = document.getElementById(msg.data.addr);
+        console.log("room_part", msg.data.part);
+        var player_node = document.getElementById(msg.data.part);
         player_node.parentNode.removeChild(player_node);
       } else if (msg.pattern === "room_go") {
         console.log("looking for player", msg.data.addr);
         var node = document.getElementById(msg.data.addr);
+        console.log(node);
         var split = msg.data.go.split(',');
         tile = tileimages[parseInt(split[1])][parseInt(split[0])];
         console.log(tile.offsetTop, tile.offsetLeft);

@@ -1,4 +1,7 @@
 
+function random(max) {
+  return Math.floor(Math.random() * max);
+}
 
 function* main() {
   let participants = new Map();
@@ -16,14 +19,17 @@ function* main() {
     let msg = yield recv();
     console.log("room msg", JSON.stringify(msg));
     if (msg.pattern === 'join') {
-      let joiner_id = msg.data.addr;
+      let pos = random(16) + "," + random(16);
+      msg.data.pos = pos;
+      msg.data.addr = msg.data.join;
+
+      let joiner_id = msg.data.join;
       let joiner = address(joiner_id);
 
-      msg.data.addr = joiner_id;
       participants[joiner_id] = {
         cast: joiner,
         addr: joiner_id,
-        pos: msg.data.pos,
+        pos: pos,
         name: msg.data.name};
 
       let players = [];
@@ -39,10 +45,10 @@ function* main() {
         }
       }
 
-      joiner('room', {tiles: tiles, players: players});
+      joiner('room', {tiles: tiles, players: players, server: msg.addr, pos: pos, name: msg.data.name}, true);
     } else if (msg.pattern === 'part') {
-      console.log("Part", msg.data.addr, participants);
-      delete participants[msg.data.addr];
+      console.log("Part", msg.data.part, participants);
+      delete participants[msg.data.part];
       for (let i in participants) {
         participants[i].cast('room_part', msg.data);
       }

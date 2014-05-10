@@ -1,7 +1,9 @@
 
 "use strict";
 
-let vm = require("vm");
+let vm = require("vm"),
+    fs = require('fs'),
+    uuid = require('node-uuid');
 
 
 exports.Vat = function Vat(global_logger) {
@@ -102,7 +104,7 @@ exports.Vat = function Vat(global_logger) {
     return address;
   }
 
-  function spawn(code, name, ui) {
+  function spawn(actor, name, ui) {
     let ctx = vm.createContext({
       __name: name,
       __mailbox: new Map(),
@@ -128,9 +130,11 @@ exports.Vat = function Vat(global_logger) {
         return {recv: Array.prototype.slice.call(arguments, 1), timeout: time};
       },
       spawn: spawn,
-      address: create_address(name)
+      address: create_address(name),
+      uuid: uuid.v4
     });
-    vm.runInContext('"use strict"; ' + code, ctx, "main.js");
+    let code = fs.readFileSync("actors/" + actor + ".act");
+    vm.runInContext('"use strict"; ' + code, ctx, actor + ".act");
     vm.runInContext("var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, "mainloop.js");
 
     let cast = function cast(pattern, msg, return_address) {

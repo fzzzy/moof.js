@@ -1,0 +1,14 @@
+
+function* main() {
+  let room_id = uuid();
+  let room = spawn("room", room_id);
+  while (true) {
+    let msg = yield recv();
+    if (msg.pattern === "login") {
+      console.log("server msg", msg.data);
+      room("join", {join: msg.data.login, name: msg.data.name}, true);
+    } else if (msg.pattern === "close") {
+      room("part", {part: msg.data.close});
+    }
+  }
+}
