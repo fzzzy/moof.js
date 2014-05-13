@@ -61,10 +61,10 @@ exports.Vat = function Vat(global_logger) {
         check_mailbox(ctx, result.value.recv, result.value.timeout);
       }
     } else {
-      if (ctx.__name !== undefined) {
-        delete actors[ctx.__name];
+      if (ctx.name !== undefined) {
+        delete actors[ctx.name];
       }
-      //broadcast("done", ctx.__name);
+      //broadcast("done", ctx.name);
       //console.log("DONE", actors);
       //console.log("DONE", result.value, ctx);
     }
@@ -72,13 +72,13 @@ exports.Vat = function Vat(global_logger) {
 
   function create_address(my_name) {
     function address(name) {
-      //console.log("looking up ", name, "in", Object.getOwnPropertyNames(actors));
+      //console.log(my_name, "looking up ", name, "in", Object.getOwnPropertyNames(actors));
       if (actors[name] === undefined) {
         actors[name] = {
           early_mailbox: [],
           cast: function cast(pattern, msg, return_address) {
             //console.log("address_cast", pattern, msg, return_address, my_name);
-            if (return_address === true) {
+            if (return_address !== undefined) {
               return_address = my_name;
             } else {
               return_address = undefined;
@@ -93,20 +93,29 @@ exports.Vat = function Vat(global_logger) {
       }
       let addr_cast = actors[name].cast;
       return function cast(pattern, msg, return_address) {
+        //console.log("calling cast", my_name);
         if (return_address === true) {
           return_address = my_name;
         } else {
           return_address = undefined;
         }
-        addr_cast(pattern, msg, return_address)
+        addr_cast(pattern, msg, return_address);
       }
     }
     return address;
   }
 
   function spawn(actor, name, ui) {
+    let code = fs.readFileSync("actors/" + actor + ".act");
+    return spawn_code(code, actor + ".act", name, ui);
+  }
+
+  function spawn_code(code, filename, name, ui) {
+    if (name === undefined) {
+      name = uuid.v4();
+    }
     let ctx = vm.createContext({
-      __name: name,
+      name: name,
       __mailbox: new Map(),
       __waiting: null,
       __timeout: null,
@@ -129,12 +138,13 @@ exports.Vat = function Vat(global_logger) {
       time_recv: function time_recv(time) {
         return {recv: Array.prototype.slice.call(arguments, 1), timeout: time};
       },
+      spawn_code: spawn_code,
       spawn: spawn,
       address: create_address(name),
       uuid: uuid.v4
     });
-    let code = fs.readFileSync("actors/" + actor + ".act");
-    vm.runInContext('"use strict"; ' + code, ctx, actor + ".act");
+    //console.log('create_address', name);
+    vm.runInContext('"use strict"; ' + code, ctx, filename + ".act");
     vm.runInContext("var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, "mainloop.js");
 
     let cast = function cast(pattern, msg, return_address) {
@@ -177,5 +187,6 @@ exports.Vat = function Vat(global_logger) {
   }
 
   this.address = create_address();
+  this.spawn_code = spawn_code;
   this.spawn = spawn;
 };

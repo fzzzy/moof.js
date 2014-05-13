@@ -26,6 +26,7 @@ engine.attach(http).on('connection', function (socket) {
 
   socket.on('message', function(data) {
     var msg = JSON.parse(data);
+    console.log("server id", server_id);
     console.log("server.js msg", data);
     if (logged_in) {
       my_act(msg.pattern, msg.data);
@@ -45,7 +46,7 @@ engine.attach(http).on('connection', function (socket) {
     my_act = vat.spawn("player", socket.id, ui_func);
     logged_in = true;
 
-    server("login", {login: socket.id, name: msg.data.name});
+    server("login", {login: socket.id, name: msg.data.name, server: server_id});
   });
 
   socket.on('close', function () {

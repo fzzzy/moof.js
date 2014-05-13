@@ -1,0 +1,5 @@
+
+function* main() {
+  let msg = yield recv();
+  console.log("return address: " + msg.addr);
+}

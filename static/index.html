@@ -15,6 +15,7 @@
   <div id="tileset"></div>
   <select id="dig">
     <option value="move">Move</option>
+    <option value="link">Link</option>
     <option value="1">1 Sand</option>
     <option value="2">2 Grass</option>
     <option value="3">3 Rock</option>
@@ -46,12 +47,13 @@
   </select>
   <form id="submit-input">
     <input name="msg" />
-    <button>Send</button>
+    <button name="send">Send</button>
   </form>
   <script>
 
 var login_box = document.getElementById("login-box");
 var dig = document.getElementById("dig");
+var input_box = document.getElementById("submit-input").msg;
 
 window.onload = function() {
   login_box.name.focus();
@@ -60,7 +62,12 @@ window.onload = function() {
 login_box.onsubmit = function(e) {
   e.preventDefault();
   login(login_box.name.value);
+  input_box.focus();
 }
+
+
+var players = [];
+
 
 function login(player_name) {
   var pos = "";
@@ -70,6 +77,7 @@ function login(player_name) {
     node.id = pl.addr;
     node.textContent = pl.name;
     node.className = "player";
+    players.push(node);
     var split = pl.pos.split(',');
     tile = tileimages[parseInt(split[1])][parseInt(split[0])];
     console.log(tile.offsetTop, tile.offsetLeft);
@@ -77,6 +85,8 @@ function login(player_name) {
     node.style.left = (tile.offsetLeft + 4) + "px";
     tileset.appendChild(node);
   }
+
+  var spacer = document.getElementById("spacer");
 
   var socket = new eio.Socket('ws://localhost:8080/');
   socket.on('open', function () {
@@ -88,6 +98,11 @@ function login(player_name) {
       var msg = JSON.parse(data);
       console.log('got message', data);
       if (msg.pattern === "room") {
+        for (var i = 0; i < players.length; i++) {
+          var pl = players[i];
+          pl.parentNode.removeChild(pl);
+        }
+        players = [];
         console.log(data);
         for (var y = 0; y < 16; y++) {
           for (var x = 0; x < 16; x++) {
@@ -101,7 +116,10 @@ function login(player_name) {
         var node = document.createElement("div");
         node.className = msg.pattern;
         node.textContent = msg.data.msg;
-        document.body.appendChild(node);   
+        document.body.insertBefore(node, spacer);
+        if (window.getSelection().anchorNode === input_box) {
+          console.log("s3eLected");
+        }
       } else if (msg.pattern === "room_join") {
         add_player(msg.data);
       } else if (msg.pattern === "room_part") {
@@ -121,8 +139,14 @@ function login(player_name) {
         var split = msg.data.dig.split(",");
         tileimages[parseInt(split[1])][parseInt(split[0])].src = (
           "tiles/" + msg.data.tile + ".png");
+      } else if (msg.pattern === "room_link") {
+        var frame = document.createElement("iframe");
+        frame.src = msg.data.room_link;
+        document.body.insertBefore(frame, spacer);
+        var br = document.createElement("br");
+        document.body.insertBefore(br, spacer);
       } else {
-        console.log(data);
+        console.log("unknown message ignored", data);
       }
     });
     socket.on('close', function () { console.log("close"); });
@@ -133,6 +157,12 @@ function login(player_name) {
       console.log("dig.value", dig.value, x, y);
       if (dig.value === "move") {
         socket.send(JSON.stringify({pattern: 'go', data: "" + x + "," + y}));
+      } else if (dig.value === "link") {
+        var link_destination = prompt("Enter room name or http url to link to:", "new-room");
+        if (link_destination !== null) {
+          socket.send(JSON.stringify({pattern: 'link', data: {link: link_destination, pos: "" + x + "," + y}}));        
+        }
+        dig.value = "move";
       } else {
         socket.send(
           JSON.stringify(
@@ -167,5 +197,6 @@ function login(player_name) {
 }
 
   </script>
+  <div id="spacer">&nbsp;</div>
   </body>
 </html>

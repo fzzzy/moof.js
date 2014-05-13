@@ -1,28 +1,58 @@
 
 
+let room_messages = new Map();
+room_messages['room_msg'] = true;
+room_messages['room_join'] = true;
+room_messages['room_part'] = true;
+room_messages['room_go'] = true;
+room_messages['room_dig'] = true;
+room_messages['room_link'] = true;
+
+
 function* main() {
   ui('msg', 'hello worlddddd');
-  let joined_msg = yield recv('room');
-  console.log("player msg", joined_msg.pattern, joined_msg.data);
-  let server_id = joined_msg.data.server;
-  let server = address(server_id);
-  let room_id = joined_msg.addr;
-  let room = address(room_id);
 
-  //ui('msg', {msg: 'joined ' + JSON.stringify(joined_msg)});
-  ui('room', joined_msg.data);
+  let server_id = null,
+      server = null,
+      room_id = null,
+      room = null,
+      name = null;
+
+  let msg = yield recv("room");
+
+  server_id = msg.data.server;
+  server = address(server_id);
+  room_id = msg.addr;
+  room = address(room_id);
+  name = msg.data.name;
+  ui('room', msg.data);
+
+  console.log(name, "player roommsg", JSON.stringify(msg));
+
   while (true) {
-    let msg = yield recv();
-    console.log("player msg", JSON.stringify(msg));
-    //ui('msg', JSON.stringify(msg));
-    if (msg.pattern === "msg") {
+    msg = yield recv();
+    console.log(name, "player msg", JSON.stringify(msg));
+
+    if (msg.pattern === "room") {
+      ui('room', msg.data);
+      room_id = msg.addr;
+      room = address(room_id);
+      name = msg.data.name;
+      console.log("player name", name);
+    } else if (msg.pattern in room_messages) {
+      ui(msg.pattern, msg.data);
+    } else if (msg.pattern === "msg") {
       room(msg.pattern, {msg: msg.data}, true);
     } else if (msg.pattern === "go") {
-      room("go", {go: msg.data}, true);
+      room("go", {go: msg.data, server: server_id}, true);
     } else if (msg.pattern === "dig") {
       room("dig", msg.data, true);
-    } else {
-      ui(msg.pattern, msg.data);
+    } else if (msg.pattern === "link") {
+      console.log("player sending link message", server_id);
+      server("link", {link: msg.data.link, from_room: room_id, pos: msg.data.pos}, true);
+//      server("enter", {enter: msg.data.link, name: name, from_room: room_id});
+    } else if (msg.pattern === "enter") {
+      server("enter", {enter: msg.data.enter, name: name, from_room: room_id}, true);
     }
   }
 }

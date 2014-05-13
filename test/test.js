@@ -7,10 +7,6 @@ let assert = require("assert"),
     actors = require("../actors");
 
 
-function act(name) {
-  return fs.readFileSync("test/actors/" + name + ".act");
-}
-
 describe('actors', function() {
   let o;
   beforeEach(function() {
@@ -26,14 +22,14 @@ describe('actors', function() {
   describe('spawn', function() {
   
     it('should log to the logging function', function() {
-      o.vat.spawn("console.log('hello')");
+      o.vat.spawn_code("console.log('hello')");
       assert.equal(o.logs.length, 1);
       assert.equal(o.logs[0], 'hello');
     });
   
     it('should log twice', function() {
-      o.vat.spawn("console.log('hello')");
-      o.vat.spawn("console.log('goodbye')");
+      o.vat.spawn_code("console.log('hello')");
+      o.vat.spawn_code("console.log('goodbye')");
       assert.equal(o.logs.length, 2);
       assert.equal(o.logs[0], 'hello');
       assert.equal(o.logs[1], 'goodbye');
@@ -43,7 +39,7 @@ describe('actors', function() {
 
   describe('cast', function() {
     it('should output the message cast in', function(done) {
-      let a = o.vat.spawn(act('echo'));
+      let a = o.vat.spawn('echo');
       a('msg', 'message');
       process.nextTick(function() {
         assert.equal(o.logs.length, 1);
@@ -55,11 +51,8 @@ describe('actors', function() {
 
   describe('pingpong', function() {
     it('should ping pong back and forth', function(done) {
-      let ping = act("ping");  
-      let pong = act("pong");
-
-      o.vat.spawn(ping, "ping");
-      o.vat.spawn(pong, "pong");
+      o.vat.spawn('ping', "ping");
+      o.vat.spawn('pong', "pong");
 
       process.nextTick(function() {
         process.nextTick(function() {
@@ -82,10 +75,21 @@ describe('actors', function() {
       function ui(what) {
         output = what;
       }
-      o.vat.spawn("ui('hello')", 'ui', ui);
+      o.vat.spawn_code("ui('hello')", "?", 'ui', ui);
       assert.equal(output, "hello");
     });
   });
 
+  describe('return address', function() {
+    it('should be able to send the return address to another actor', function(done) {
+        o.vat.spawn('returner', 'returner');
+        o.vat.spawn('returnee', 'returnee');
+        process.nextTick(function() {
+          assert.equal(o.logs.length, 1);
+          assert.equal(o.logs[0], 'return address: returner');
+          done();
+        });
+    });
+  });
 });
 

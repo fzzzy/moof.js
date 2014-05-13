@@ -3,21 +3,26 @@ function random(max) {
   return Math.floor(Math.random() * max);
 }
 
+
 function* main() {
   let participants = new Map();
   let tiles = [];
+  let links = [];
   for (let y = 0; y < 16; y++) {
     let row = [];
+    let linkrow = [];
     for (let x = 0; x < 16; x++) {
       row.push(0);
+      linkrow.push("");
     }
     tiles.push(row);
+    links.push(linkrow);
   }
   console.log("hello room");
 
   while (true) {
     let msg = yield recv();
-    console.log("room msg", JSON.stringify(msg));
+    console.log(name, "room msg", JSON.stringify(msg));
     if (msg.pattern === 'join') {
       let pos = random(16) + "," + random(16);
       msg.data.pos = pos;
@@ -44,8 +49,8 @@ function* main() {
             msg.data);
         }
       }
-
-      joiner('room', {tiles: tiles, players: players, server: msg.addr, pos: pos, name: msg.data.name}, true);
+      
+      joiner('room', {tiles: tiles, players: players, server: msg.data.server, pos: pos, name: msg.data.name}, true);
     } else if (msg.pattern === 'part') {
       console.log("Part", msg.data.part, participants);
       delete participants[msg.data.part];
@@ -60,9 +65,20 @@ function* main() {
           addr: msg.addr});
       }
     } else if (msg.pattern === 'go') {
+      let split = msg.data.go.split(",");
+      console.log(name, "links", links);
+      let link = links[parseInt(split[1])][parseInt(split[0])];
+      if (link) {
+        let player = address(msg.addr);
+        if (link.indexOf("http://") !== 0 && link.indexOf("https://") !== 0) {
+          player("enter", {enter: link});
+          return;
+        }
+        player("room_link", {room_link: link});
+      }
       for (let i in participants) {
         participants[i].cast('room_go', {go: msg.data.go, addr: msg.addr});
-      }
+      }        
     } else if (msg.pattern === 'dig') {
       let split = msg.data.dig.split(",");
       tiles[parseInt(split[1])][parseInt(split[0])] = parseInt(msg.data.tile);
@@ -70,7 +86,11 @@ function* main() {
       for (let i in participants) {
         participants[i].cast('room_dig', {dig: msg.data.dig, tile: msg.data.tile, addr: msg.addr});
       }
+    } else if (msg.pattern === "server_link") {
+      let split = msg.data.pos.split(",");
+      links[parseInt(split[1])][parseInt(split[0])] = msg.data.link;
+      let player = address(msg.data.player);
+      player("go", msg.data.pos);
     }
   }
 }
-

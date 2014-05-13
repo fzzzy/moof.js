@@ -1,12 +1,29 @@
 
 function* main() {
-  let room_id = uuid();
+  let rooms = new Map();
+  let room_id = "first-room";
   let room = spawn("room", room_id);
+  rooms[room_id] = room;
   while (true) {
     let msg = yield recv();
+    console.log(name, "server msg", msg);
     if (msg.pattern === "login") {
       console.log("server msg", msg.data);
-      room("join", {join: msg.data.login, name: msg.data.name}, true);
+      room("join", {join: msg.data.login, name: msg.data.name, server: msg.data.server}, true);
+    } else if (msg.pattern === "link") {
+      let from_room = address(msg.data.from_room);
+      console.log("rooms", rooms);
+      if (!(msg.data.link in rooms)) {
+        rooms[msg.data.link] = spawn("room", msg.data.link);
+      }
+      let new_room = rooms[msg.data.link];
+      from_room("server_link", {link: msg.data.link, pos: msg.data.pos, player: msg.addr});
+    } else if (msg.pattern === "enter") {
+      let from_room = address(msg.data.from_room);
+      console.log("enter", rooms);
+      from_room("part", {part: msg.addr});
+      let new_room = rooms[msg.data.enter];
+      new_room("join", {join: msg.addr, name: msg.data.name}, true);
     } else if (msg.pattern === "close") {
       room("part", {part: msg.data.close});
     }
