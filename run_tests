@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+echo "Running unit tests..."
+./node_modules/.bin/istanbul cover _mocha && ./node_modules/.bin/istanbul report html
+

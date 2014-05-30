@@ -18,6 +18,9 @@ function* main() {
     tiles.push(row);
     links.push(linkrow);
   }
+  let started = yield recv("server_started");
+  let server = started.data.server;
+
   console.log("hello room");
 
   while (true) {
@@ -25,10 +28,12 @@ function* main() {
     console.log(name, "room msg", JSON.stringify(msg));
     if (msg.pattern === 'join') {
       let pos = random(16) + "," + random(16);
-      msg.data.pos = pos;
       msg.data.addr = msg.data.join;
+      msg.data.pos = pos;
 
       let joiner_id = msg.data.join;
+      console.log("joiner", joiner_id);
+
       let joiner = address(joiner_id);
 
       participants[joiner_id] = {
@@ -49,8 +54,8 @@ function* main() {
             msg.data);
         }
       }
-      
-      joiner('room', {tiles: tiles, players: players, server: msg.data.server, pos: pos, name: msg.data.name}, true);
+
+      joiner('room', {room: name, tiles: tiles, players: players, server: server, pos: pos, name: msg.data.name});
     } else if (msg.pattern === 'part') {
       console.log("Part", msg.data.part, participants);
       delete participants[msg.data.part];
@@ -66,10 +71,10 @@ function* main() {
       }
     } else if (msg.pattern === 'go') {
       let split = msg.data.go.split(",");
-      console.log(name, "links", links);
+      //console.log(name, "links", links);
       let link = links[parseInt(split[1])][parseInt(split[0])];
       if (link) {
-        let player = address(msg.addr);
+        let player = address(msg.data.player);
         if (link.indexOf("http://") !== 0 && link.indexOf("https://") !== 0) {
           player("enter", {enter: link});
           return;
@@ -77,7 +82,7 @@ function* main() {
         player("room_link", {room_link: link});
       }
       for (let i in participants) {
-        participants[i].cast('room_go', {go: msg.data.go, addr: msg.addr});
+        participants[i].cast('room_go', {go: msg.data.go, addr: msg.data.player});
       }        
     } else if (msg.pattern === 'dig') {
       let split = msg.data.dig.split(",");

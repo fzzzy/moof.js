@@ -7,7 +7,7 @@ let actors = require('./actors.js'),
 let vat = actors.Vat();
 
 let server_id = uuid.v4();
-let server = vat.spawn("server", server_id);
+let server = vat.spawn("actors/server.act", server_id);
 
 let engine = require('engine.io');
 
@@ -26,8 +26,6 @@ engine.attach(http).on('connection', function (socket) {
 
   socket.on('message', function(data) {
     var msg = JSON.parse(data);
-    console.log("server id", server_id);
-    console.log("server.js msg", data);
     if (logged_in) {
       my_act(msg.pattern, msg.data);
       return;
@@ -43,10 +41,10 @@ engine.attach(http).on('connection', function (socket) {
       socket.send(JSON.stringify({pattern: pat, data: data}));
     }
 
-    my_act = vat.spawn("player", socket.id, ui_func);
+    my_act = vat.spawn("actors/player.act", socket.id, ui_func);
     logged_in = true;
 
-    server("login", {login: socket.id, name: msg.data.name, server: server_id});
+    server("login", {login: socket.id, name: msg.data.name});
   });
 
   socket.on('close', function () {

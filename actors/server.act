@@ -1,31 +1,40 @@
 
+var first_room_id = "first-room";
+var rooms = new Map();
+rooms[first_room_id] = true;
+
 function* main() {
-  let rooms = new Map();
-  let room_id = "first-room";
-  let room = spawn("room", room_id);
-  rooms[room_id] = room;
+  for (let room_id in rooms) {
+	  let room = spawn("actors/room.act", room_id);
+	  room("server_started", {server: name});
+  }
+  let first_room = address(first_room_id);
+
   while (true) {
     let msg = yield recv();
-    console.log(name, "server msg", msg);
+    console.log(name, "server msg", JSON.stringify(msg));
     if (msg.pattern === "login") {
-      console.log("server msg", msg.data);
-      room("join", {join: msg.data.login, name: msg.data.name, server: msg.data.server}, true);
+      first_room("join", {join: msg.data.login, name: msg.data.name});
     } else if (msg.pattern === "link") {
       let from_room = address(msg.data.from_room);
       console.log("rooms", rooms);
+      let new_room = null;
       if (!(msg.data.link in rooms)) {
-        rooms[msg.data.link] = spawn("room", msg.data.link);
+        rooms[msg.data.link] = true;
+        new_room = spawn("actors/room.act", msg.data.link);
+      } else {
+  	    new_room = address(msg.data.link);
       }
-      let new_room = rooms[msg.data.link];
-      from_room("server_link", {link: msg.data.link, pos: msg.data.pos, player: msg.addr});
+      from_room("server_link", {link: msg.data.link, pos: msg.data.pos, player: msg.data.player});
     } else if (msg.pattern === "enter") {
       let from_room = address(msg.data.from_room);
       console.log("enter", rooms);
-      from_room("part", {part: msg.addr});
-      let new_room = rooms[msg.data.enter];
-      new_room("join", {join: msg.addr, name: msg.data.name}, true);
+      from_room("part", {part: msg.data.player});
+      let new_room = address(msg.data.enter);
+      new_room("join", {join: msg.data.player, name: msg.data.name});
     } else if (msg.pattern === "close") {
-      room("part", {part: msg.data.close});
+      // todo use actual room player was in!
+      first_room("part", {part: msg.data.close});
     }
   }
 }

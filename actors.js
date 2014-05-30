@@ -26,7 +26,7 @@ exports.Vat = function Vat(global_logger) {
         waitforwhat = Object.getOwnPropertyNames(ctx.__mailbox)[0];
       }
       let vals = ctx.__mailbox[waitforwhat];
-      if (vals !== undefined) {
+      if (vals) {
         let val = vals.shift();
         if (!vals.length) {
           delete ctx.__mailbox[waitforwhat];
@@ -36,7 +36,7 @@ exports.Vat = function Vat(global_logger) {
           clearTimeout(ctx.__timeout);
           ctx.__timeout = null;
         }
-        iterate(ctx, {pattern: waitforwhat, data: JSON.parse(val.data), addr: val.addr});
+        iterate(ctx, {pattern: waitforwhat, data: JSON.parse(val.data)});
         return;
       }
     }
@@ -61,59 +61,47 @@ exports.Vat = function Vat(global_logger) {
         check_mailbox(ctx, result.value.recv, result.value.timeout);
       }
     } else {
-      if (ctx.name !== undefined) {
-        delete actors[ctx.name];
-      }
-      //broadcast("done", ctx.name);
-      //console.log("DONE", actors);
-      //console.log("DONE", result.value, ctx);
+      delete actors[ctx.name];
     }
   }
 
-  function create_address(my_name) {
-    function address(name) {
-      //console.log(my_name, "looking up ", name, "in", Object.getOwnPropertyNames(actors));
-      if (actors[name] === undefined) {
-        actors[name] = {
-          early_mailbox: [],
-          cast: function cast(pattern, msg, return_address) {
-            //console.log("address_cast", pattern, msg, return_address, my_name);
-            if (return_address !== undefined) {
-              return_address = my_name;
-            } else {
-              return_address = undefined;
-            }
-            if (actors[name].early_mailbox !== undefined) {
-              actors[name].early_mailbox.push([pattern, JSON.stringify(msg), return_address]);
-            } else {
-              actors[name].cast(pattern, msg, return_address);
-            }
-          }
-        };
-      }
-      let addr_cast = actors[name].cast;
-      return function cast(pattern, msg, return_address) {
-        //console.log("calling cast", my_name);
-        if (return_address === true) {
-          return_address = my_name;
-        } else {
-          return_address = undefined;
-        }
-        addr_cast(pattern, msg, return_address);
-      }
+  function address(name) {
+    if (name === undefined) {
+      throw new Error("address cannot be undefined");
     }
-    return address;
+    //console.log(my_name, "looking up ", name, "in", Object.getOwnPropertyNames(actors));
+    if (actors[name] === undefined) {
+      actors[name] = {
+        early_mailbox: [],
+        cast: function cast(pattern, msg) {
+          //console.log("address_cast", pattern, msg, my_name);
+          if (actors[name].early_mailbox !== undefined) {
+            actors[name].early_mailbox.push([pattern, msg]);
+          } else {
+            actors[name].cast(pattern, msg);
+          }
+        }
+      };
+    }
+    let addr_cast = actors[name].cast;
+    return function cast(pattern, msg) {
+      //console.log("calling cast", my_name);
+      addr_cast(pattern, msg);
+    }
   }
 
   function spawn(actor, name, ui) {
-    let code = fs.readFileSync("actors/" + actor + ".act");
-    return spawn_code(code, actor + ".act", name, ui);
+    let code = fs.readFileSync(actor);
+    return spawn_code(code, actor, name, ui);
   }
 
   function spawn_code(code, filename, name, ui) {
     if (name === undefined) {
       name = uuid.v4();
+    } else if (actors[name] !== undefined && actors[name].early_mailbox === undefined) {
+      throw new Error("attempted to start duplicate actor " + name);
     }
+
     let ctx = vm.createContext({
       name: name,
       __mailbox: new Map(),
@@ -136,18 +124,21 @@ exports.Vat = function Vat(global_logger) {
         }
       },
       time_recv: function time_recv(time) {
-        return {recv: Array.prototype.slice.call(arguments, 1), timeout: time};
+        let args = Array.prototype.slice.call(arguments, 1);
+        if (!args.length) {
+          args = ["*"];
+        }
+        return {recv: args, timeout: time};
       },
       spawn_code: spawn_code,
       spawn: spawn,
-      address: create_address(name),
+      address: address,
       uuid: uuid.v4
     });
-    //console.log('create_address', name);
-    vm.runInContext('"use strict"; ' + code, ctx, filename + ".act");
+    vm.runInContext('"use strict"; ' + code, ctx, filename);
     vm.runInContext("var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, "mainloop.js");
 
-    let cast = function cast(pattern, msg, return_address) {
+    let cast = function cast(pattern, msg) {
       //console.log("casting", pattern, msg);
       if (ctx.__mailbox[pattern] === undefined) {
         ctx.__mailbox[pattern] = [];
@@ -155,29 +146,27 @@ exports.Vat = function Vat(global_logger) {
       if (msg === undefined) {
         msg = {};
       }
-      if (return_address === true) {
-        return_address = name;
-      }
-      ctx.__mailbox[pattern].push({data: JSON.stringify(msg), addr: return_address});
+      ctx.__mailbox[pattern].push({data: JSON.stringify(msg)});
       if (ctx.__waiting !== null) {
         process.nextTick(function() {
-          check_mailbox(ctx, ctx.__waiting);        
+          if (ctx.__waiting !== null) {
+            check_mailbox(ctx, ctx.__waiting);
+          }
         });
       }
     }
-    if (name) {
-      let early_mailbox = null;
-      if (actors[name] !== undefined) {
-        early_mailbox = actors[name].early_mailbox;
-      }
-      actors[name] = {cast: cast, code: code, name: name};
-      if (early_mailbox) {
-        for (let i = 0; i < early_mailbox.length; i++) {
-          let pattern = early_mailbox[i][0];
-          let data = early_mailbox[i][1];
-          let return_address = early_mailbox[i][2];
-          cast(pattern, data, return_address);
-        }
+
+    let early_mailbox = null;
+    if (actors[name] !== undefined) {
+      early_mailbox = actors[name].early_mailbox;
+      delete actors[name].early_mailbox;
+    }
+    actors[name] = {cast: cast, code: code, name: name};
+    if (early_mailbox) {
+      for (let i = 0; i < early_mailbox.length; i++) {
+        let pattern = early_mailbox[i][0];
+        let data = early_mailbox[i][1];
+        cast(pattern, data);
       }
     }
 
@@ -186,7 +175,7 @@ exports.Vat = function Vat(global_logger) {
     return cast;
   }
 
-  this.address = create_address();
+  this.address = address;
   this.spawn_code = spawn_code;
   this.spawn = spawn;
 };

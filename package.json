@@ -5,6 +5,8 @@
     "node-uuid": "1.4.1",
     "engine.io": "1.0.3",
     "mocha": "1.17.1",
-    "node-static": "0.7.3"
+    "node-static": "0.7.3",
+    "selenium-webdriver": "2.42.0",
+    "istanbul": "0.2.10"
   }
 }
