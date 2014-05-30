@@ -32,7 +32,6 @@ function* main() {
       msg.data.pos = pos;
 
       let joiner_id = msg.data.join;
-      console.log("joiner", joiner_id);
 
       let joiner = address(joiner_id);
 

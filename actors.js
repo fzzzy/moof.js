@@ -5,7 +5,6 @@ let vm = require("vm"),
     fs = require('fs'),
     uuid = require('node-uuid');
 
-
 exports.Vat = function Vat(global_logger) {
    if (!(this instanceof Vat)) {
      return new Vat(global_logger);
@@ -135,6 +134,7 @@ exports.Vat = function Vat(global_logger) {
       address: address,
       uuid: uuid.v4
     });
+
     vm.runInContext('"use strict"; ' + code, ctx, filename);
     vm.runInContext("var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, "mainloop.js");
 
@@ -179,3 +179,4 @@ exports.Vat = function Vat(global_logger) {
   this.spawn_code = spawn_code;
   this.spawn = spawn;
 };
+

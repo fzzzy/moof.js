@@ -27,7 +27,7 @@ function* main() {
   player_name = msg.data.name;
   ui('room', msg.data);
 
-  console.log(name, player_name, "player roommsg", JSON.stringify(msg));
+  //console.log(name, player_name, "player roommsg", JSON.stringify(msg));
 
   while (true) {
     msg = yield recv();

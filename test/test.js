@@ -6,7 +6,7 @@ let assert = require("assert"),
     actors = require("../actors");
 
 
-describe('actors', function() {
+describe('Unit tests', function() {
   let o;
   beforeEach(function() {
     let logs = [];
