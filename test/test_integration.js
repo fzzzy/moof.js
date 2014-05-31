@@ -36,6 +36,14 @@ test.describe('Integration tests', function() {
         }
       });
     }, 1000, 'Failed to find player after 1 second');
+    d.wait(function() {
+      return d.findElements(webdriver.By.id("0,0")).then(function(el) {
+        if (el.length) {
+          el[0].click();
+          return el[0];
+        }
+      });
+    }, 1000, 'Failed to find tile after 1 second');
   });
 });
 

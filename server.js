@@ -35,7 +35,6 @@ exports.listen = function(port) {
       }
 
       if (msg.pattern !== "login") {
-        console.log("ignored message because not logged in", data);
         return;
       }
 

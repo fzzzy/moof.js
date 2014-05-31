@@ -92,6 +92,10 @@ function login(player_name) {
   socket.on('open', function () {
     socket.send(
       JSON.stringify(
+        {hello: "world"}));
+
+    socket.send(
+      JSON.stringify(
         {pattern: "login", data: {name: player_name}}));
 
     socket.on('message', function (data) {
@@ -179,6 +183,7 @@ function login(player_name) {
     var rowarray = [];
     for (var x = 0; x < 16; x++) {
       var img = document.createElement("img");
+      img.id = "" + x + "," + y;
       img.onclick = create_onclick(x, y);
       rowarray.push(img);
       row.appendChild(img);
