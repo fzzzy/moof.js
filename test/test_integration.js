@@ -6,19 +6,7 @@ var assert = require('assert'),
 
 test.describe('Integration tests', function() {
   var d;
-  function overrideLogger() {
-    // disable temporarily
-    return;
-    logs = [];
-    function logger() {
-      for (var i = 0; i < arguments.length; i++) {
-        logs.push(arguments[i]);
-      }
-    }
-    console.log = logger;
-  }
   before(function(done) {
-    overrideLogger();
 
     var cont = true;
     d = new webdriver.Builder()
@@ -34,9 +22,8 @@ test.describe('Integration tests', function() {
     });
   });
 
-  var logs = [];
-  beforeEach(function() {
-    overrideLogger();
+  after(function(done) {
+    d.quit().then(done);
   });
 
   test.it('should be able to log in to the world', function() {
@@ -52,9 +39,7 @@ test.describe('Integration tests', function() {
           });
         }
       });
-    }, 1000, 'Failed to find player after 1 second ' + logs.join(" "));
-
-//    driver.quit();
+    }, 1000, 'Failed to find player after 1 second');
   });
 });
 
