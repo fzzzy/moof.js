@@ -6,24 +6,20 @@ var assert = require('assert'),
 
 test.describe('Integration tests', function() {
   var d;
-  before(function(done) {
+  var s;
+  before(function() {
 
     var cont = true;
     d = new webdriver.Builder()
       .withCapabilities(webdriver.Capabilities.chrome())
       .build();
-    var server = child.spawn("node", ["--harmony", "server.js"]);
-    server.stdout.on('data', function (data) {
-      console.log(data.toString());
-      if (cont) {
-        done();
-        cont = false;
-      }
-    });
+
+    s = require("../server.js").listen(8080);
   });
 
   after(function(done) {
     d.quit().then(done);
+    s.close();
   });
 
   test.it('should be able to log in to the world', function() {

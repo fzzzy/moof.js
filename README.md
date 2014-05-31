@@ -24,6 +24,6 @@ The integration tests currently require Chrome and the Selenium WebDriver for Ch
 To run the server:
 ------------------
 
-> node server.js
+> ./server
 
 Then visit http://localhost:8080/ in your favorite browser.

@@ -1,57 +1,61 @@
 
 "use strict";
 
-let actors = require('./actors.js'),
-    uuid = require('node-uuid');
+exports.listen = function(port) {
+  let actors = require('./actors.js'),
+      uuid = require('node-uuid');
 
-let vat = actors.Vat();
+  let vat = actors.Vat();
 
-let server_id = uuid.v4();
-let server = vat.spawn("actors/server.act", server_id);
+  let server_id = uuid.v4();
+  let server = vat.spawn("actors/server.act", server_id);
 
-let engine = require('engine.io');
+  let engine = require('engine.io');
 
-let ns = require('node-static');
-let files = new ns.Server('./static');
+  let ns = require('node-static');
+  let files = new ns.Server('./static');
 
-let http = require('http').createServer(function(request, response) {
-  request.addListener('end', function() {
-    files.serve(request, response);
-  }).resume();
-}).listen(8080);
+  let http = require('http').createServer(function(request, response) {
+    request.addListener('end', function() {
+      files.serve(request, response);
+    }).resume();
+  }).listen(port);
 
-engine.attach(http).on('connection', function (socket) {
-  let logged_in = false;
-  let my_act = null;
+  console.log("server listening on http://localhost:" + port + "/");
 
-  socket.on('message', function(data) {
-    var msg = JSON.parse(data);
-    if (logged_in) {
-      my_act(msg.pattern, msg.data);
-      return;
-    }
+  engine.attach(http).on('connection', function (socket) {
+    let logged_in = false;
+    let my_act = null;
 
-    if (msg.pattern !== "login") {
-      console.log("ignored message because not logged in", data);
-      return;
-    }
+    socket.on('message', function(data) {
+      var msg = JSON.parse(data);
+      if (logged_in) {
+        my_act(msg.pattern, msg.data);
+        return;
+      }
 
-    function ui_func(pat, data) {
-      console.log("ui msg", pat, data);
-      socket.send(JSON.stringify({pattern: pat, data: data}));
-    }
+      if (msg.pattern !== "login") {
+        console.log("ignored message because not logged in", data);
+        return;
+      }
 
-    my_act = vat.spawn("actors/player.act", socket.id, ui_func);
-    logged_in = true;
+      function ui_func(pat, data) {
+        console.log("ui msg", pat, data);
+        socket.send(JSON.stringify({pattern: pat, data: data}));
+      }
 
-    server("login", {login: socket.id, name: msg.data.name});
+      my_act = vat.spawn("actors/player.act", socket.id, ui_func);
+      logged_in = true;
+
+      server("login", {login: socket.id, name: msg.data.name});
+    });
+
+    socket.on('close', function () {
+      console.log("close");
+      server('close', {close: socket.id});
+    });
   });
 
-  socket.on('close', function () {
-    console.log("close");
-    server('close', {close: socket.id});
-  });
-});
-
-console.log("server listening on http://localhost:8080/");
+  return http;
+};
 

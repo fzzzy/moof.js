@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+"use strict";
+
+let server = require("./server.js");
+
+server.listen(8080);
