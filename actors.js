@@ -1,8 +1,9 @@
 
 "use strict";
 
-let vm = require("vm"),
+let vm = require('vm'),
     fs = require('fs'),
+    path = require('path'),
     uuid = require('node-uuid');
 
 exports.Vat = function Vat(global_logger) {
@@ -43,7 +44,7 @@ exports.Vat = function Vat(global_logger) {
       ctx.__timeout = setTimeout(function() {
         ctx.__timeout = null;
         ctx.__waiting = null;
-        vm.runInContext("__g.throw(new Error('timeout'));", ctx, "mainloop.js");
+        vm.runInContext("__g.throw(new Error('timeout'));", ctx, ctx.__filename);
       }, timeout);
     }
     ctx.__waiting = waitfor;
@@ -51,7 +52,7 @@ exports.Vat = function Vat(global_logger) {
 
   function iterate(ctx, val) {
     ctx.__val = val;
-    let result = vm.runInContext("__g.next(__val);", ctx, "mainloop.js");
+    let result = vm.runInContext("__g.next(__val);", ctx, ctx.__filename);
     //console.log(result);
     if (!result.done) {
       if (result.value.sleep !== undefined) {
@@ -91,6 +92,7 @@ exports.Vat = function Vat(global_logger) {
 
   function spawn(actor, name, ui) {
     let code = fs.readFileSync(actor);
+    actor = path.resolve(actor);
     return spawn_code(code, actor, name, ui);
   }
 
@@ -103,6 +105,7 @@ exports.Vat = function Vat(global_logger) {
 
     let ctx = vm.createContext({
       name: name,
+      __filename: filename,
       __mailbox: new Map(),
       __waiting: null,
       __timeout: null,
@@ -135,8 +138,7 @@ exports.Vat = function Vat(global_logger) {
       uuid: uuid.v4
     });
 
-    vm.runInContext('"use strict"; ' + code, ctx, filename);
-    vm.runInContext("var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, "mainloop.js");
+    vm.runInContext('"use strict"; ' + code + "; var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, filename);
 
     let cast = function cast(pattern, msg) {
       //console.log("casting", pattern, msg);

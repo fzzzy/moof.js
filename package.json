@@ -7,6 +7,6 @@
     "mocha": "1.17.1",
     "node-static": "0.7.3",
     "selenium-webdriver": "2.42.0",
-    "istanbul": "0.2.10"
+    "istanbul": "https://github.com/fzzzy/istanbul.git#harmony"
   }
 }

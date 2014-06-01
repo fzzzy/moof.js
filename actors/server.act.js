@@ -5,7 +5,7 @@ rooms[first_room_id] = true;
 
 function* main() {
   for (let room_id in rooms) {
-	  let room = spawn("actors/room.act", room_id);
+	  let room = spawn("actors/room.act.js", room_id);
 	  room("server_started", {server: name});
   }
   let first_room = address(first_room_id);
@@ -21,7 +21,7 @@ function* main() {
       let new_room = null;
       if (!(msg.data.link in rooms)) {
         rooms[msg.data.link] = true;
-        new_room = spawn("actors/room.act", msg.data.link);
+        new_room = spawn("actors/room.act.js", msg.data.link);
       } else {
   	    new_room = address(msg.data.link);
       }

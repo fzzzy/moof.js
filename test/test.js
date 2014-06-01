@@ -38,7 +38,7 @@ describe('Unit tests', function() {
 
   describe('cast', function() {
     it('should output the message cast in', function(done) {
-      let a = o.vat.spawn('test/actors/echo.act');
+      let a = o.vat.spawn('test/actors/echo.act.js');
       a('msg', 'message');
       process.nextTick(function() {
         assert.equal(o.logs.length, 1);
@@ -50,7 +50,7 @@ describe('Unit tests', function() {
 
   describe('queue', function() {
     it('should be able to queue multiple messages', function(done) {
-      let a = o.vat.spawn('test/actors/echo.act');
+      let a = o.vat.spawn('test/actors/echo.act.js');
       a('msg', 'message1');
       a('msg', 'message2');
       process.nextTick(function() {
@@ -64,8 +64,8 @@ describe('Unit tests', function() {
 
   describe('pingpong', function() {
     it('should ping pong back and forth', function(done) {
-      o.vat.spawn('test/actors/ping.act', "ping");
-      o.vat.spawn('test/actors/pong.act', "pong");
+      o.vat.spawn('test/actors/ping.act.js', "ping");
+      o.vat.spawn('test/actors/pong.act.js', "pong");
 
       process.nextTick(function() {
         process.nextTick(function() {
@@ -129,8 +129,8 @@ describe('Unit tests', function() {
 
   describe('return address', function() {
     it('should be able to send the return address to another actor', function(done) {
-        o.vat.spawn('test/actors/returner.act', 'returner');
-        o.vat.spawn('test/actors/returnee.act', 'returnee');
+        o.vat.spawn('test/actors/returner.act.js', 'returner');
+        o.vat.spawn('test/actors/returnee.act.js', 'returnee');
         process.nextTick(function() {
           assert.equal(o.logs.length, 1);
           assert.equal(o.logs[0], 'return address: returner');

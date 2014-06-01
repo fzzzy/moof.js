@@ -8,7 +8,7 @@ exports.listen = function(port) {
   let vat = actors.Vat();
 
   let server_id = uuid.v4();
-  let server = vat.spawn("actors/server.act", server_id);
+  let server = vat.spawn("actors/server.act.js", server_id);
 
   let engine = require('engine.io');
 
@@ -43,7 +43,7 @@ exports.listen = function(port) {
         socket.send(JSON.stringify({pattern: pat, data: data}));
       }
 
-      my_act = vat.spawn("actors/player.act", socket.id, ui_func);
+      my_act = vat.spawn("actors/player.act.js", socket.id, ui_func);
       logged_in = true;
 
       server("login", {login: socket.id, name: msg.data.name});
