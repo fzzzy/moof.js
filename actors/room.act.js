@@ -65,8 +65,8 @@ function* main() {
       for (let i in participants) {
         participants[i].cast(
           'room_msg',
-          {msg: participants[msg.addr].name + ': ' + msg.data.msg,
-          addr: msg.addr});
+          {msg: participants[msg.data.player].name + ': ' + msg.data.msg,
+          addr: msg.data.player});
       }
     } else if (msg.pattern === 'go') {
       let split = msg.data.go.split(",");
