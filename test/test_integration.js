@@ -56,6 +56,14 @@ test.describe('Integration tests', function() {
   test.it('should be able to send a message', function() {
     d.findElement(webdriver.By.name("msg")).then(function (el) {
       el.sendKeys("hello world\n");
+      return d.wait(function() {
+        return d.findElement(webdriver.By.className("room_msg")).then(function(element) {
+          return element.getText().then(function (txt) {
+            assert.equal(txt.trim(), "asdf: hello world");
+            return element;
+          });
+        });
+      })
     });
   });
 
