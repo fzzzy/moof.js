@@ -96,6 +96,16 @@ test.describe('Integration tests', function() {
           d.switchTo().alert().accept();
       });
     });
+
+    return d.wait(function() {
+      return d.findElement(webdriver.By.id("room-name")).then(function(element) {
+        return element.getText().then(function (txt) {
+          assert.equal(txt, "new-room");
+          return element;
+        });
+      });
+    }, 1000, 'Failed to go to new room after 1 second');
+
   });
 });
 
