@@ -56,22 +56,23 @@ test.describe('Integration tests', function() {
   test.it('should be able to send a message', function() {
     d.findElement(webdriver.By.name("msg")).then(function (el) {
       el.sendKeys("hello world\n");
-      return d.wait(function() {
-        return d.findElement(webdriver.By.className("room_msg")).then(function(element) {
-          return element.getText().then(function (txt) {
-            assert.equal(txt.trim(), "asdf: hello world");
-            return element;
-          });
-        });
-      })
     });
+
+    return d.wait(function() {
+      return d.findElement(webdriver.By.className("room_msg")).then(function(element) {
+        return element.getText().then(function (txt) {
+          assert.equal(txt.trim(), "asdf: hello world");
+          return element;
+        });
+      });
+    }, 1000, 'Failed to update position after 1 second');
   });
 
   test.it('should be able to dig a tile', function() {
     d.findElement(webdriver.By.id("dig")).then(function(dig) {
       dig.sendKeys("2");
       d.findElement(webdriver.By.id("7,0")).then(function(el) {
-          el.click();
+        el.click();
       });
     });
   });
