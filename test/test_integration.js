@@ -40,8 +40,16 @@ test.describe('Integration tests', function() {
   });
 
   test.it('should be able to go to a tile', function() {
-    d.findElement(webdriver.By.id("0,0")).then(function(el) {
-        el.click();
+    return d.findElement(webdriver.By.id("0,0")).then(function(el) {
+      el.click();
+      return d.wait(function() {
+        return d.findElement(webdriver.By.id('player-position')).then(function(element) {
+          return element.getText().then(function(txt) {
+            assert.equal(txt, "0,0");
+            return element;
+          });
+        });
+      }, 1000, 'Failed to update position after 1 second');
     });
   });
 
