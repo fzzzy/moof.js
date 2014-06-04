@@ -75,6 +75,17 @@ test.describe('Integration tests', function() {
         el.click();
       });
     });
+
+    return d.wait(function() {
+      return d.findElement(webdriver.By.id("7,0")).then(function(element) {
+        return element.getAttribute("src").then(function (txt) {
+          var split = txt.split("/");
+          assert.equal(split[split.length - 1], "2.png");
+          return element;
+        });
+      });
+    }, 1000, 'Failed to update tile after 1 second');
+
   });
 
   test.it('should be able to create a link', function() {
