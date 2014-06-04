@@ -12,6 +12,11 @@
     <input name="name" />
     <button>Log in</button>
   </form>
+  <div id="statusbar">
+    <strong>Player:</strong> <span id="player-name">&nbsp;</span>
+    <strong>Room:</strong> <span id="room-name">&nbsp;</span>
+    <strong>Position:</strong> <span id="player-position">&nbsp;</span>
+  </div>
   <div id="tileset"></div>
   <select id="dig">
     <option value="move">Move</option>
@@ -71,6 +76,7 @@ var players = [];
 
 function login(player_name) {
   var pos = "";
+  var name = "";
   function add_player(pl) {
     var node = document.createElement("span");
     console.log("add_player", pl);
@@ -102,6 +108,8 @@ function login(player_name) {
       var msg = JSON.parse(data);
       console.log('got message', data);
       if (msg.pattern === "room") {
+        var room = document.getElementById("room-name");
+        room.textContent = msg.data.room;
         for (var i = 0; i < players.length; i++) {
           var pl = players[i];
           pl.parentNode.removeChild(pl);
@@ -114,9 +122,18 @@ function login(player_name) {
           }
         }
         for (var i = 0; i < msg.data.players.length; i++) {
+          if (msg.data.name === msg.data.players[i].name) {
+            var player = document.getElementById("player-name");
+            player.textContent = msg.data.name;
+            name = msg.data.name;
+            var position = document.getElementById("player-position");
+            position.textContent = msg.data.pos;
+            pos = msg.data.pos;
+            console.log("PLAYER NAME", msg.data.name);
+          }
           add_player(msg.data.players[i]);
         }
-      } else if (msg.pattern === "room_msg" || msg.pattern === "msg") {
+      } else if (msg.pattern === "room_msg") {
         var node = document.createElement("div");
         node.className = msg.pattern;
         node.textContent = msg.data.msg;
@@ -133,6 +150,10 @@ function login(player_name) {
       } else if (msg.pattern === "room_go") {
         console.log("looking for player", msg.data.addr);
         var node = document.getElementById(msg.data.addr);
+        if (node.textContent === name) {
+          var pl_pos = document.getElementById("player-position");
+          pl_pos.textContent = msg.data.go;
+        }
         console.log(node);
         var split = msg.data.go.split(',');
         tile = tileimages[parseInt(split[1])][parseInt(split[0])];
