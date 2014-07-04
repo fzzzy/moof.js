@@ -31,14 +31,14 @@ function* main() {
 
   while (true) {
     msg = yield recv();
-    console.log(name, player_name, "player msg", JSON.stringify(msg));
+    //console.log(name, player_name, "player msg", JSON.stringify(msg));
 
     if (msg.pattern === "room") {
       ui('room', msg.data);
       room_id = msg.data.name;
       room = address(room_id);
       player_name = msg.data.name;
-      console.log("player name", player_name);
+      //console.log("player name", player_name);
     } else if (msg.pattern in room_messages) {
       ui(msg.pattern, msg.data);
     } else if (msg.pattern === "msg") {
@@ -48,7 +48,7 @@ function* main() {
     } else if (msg.pattern === "dig") {
       room("dig", msg.data);
     } else if (msg.pattern === "link") {
-      console.log("player sending link message", server_id);
+      //console.log("player sending link message", server_id);
       server("link", {link: msg.data.link, from_room: room_id, pos: msg.data.pos, player: name});
 //      server("enter", {enter: msg.data.link, name: name, from_room: room_id});
     } else if (msg.pattern === "enter") {

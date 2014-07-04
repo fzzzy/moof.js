@@ -12,12 +12,12 @@ function* main() {
 
   while (true) {
     let msg = yield recv();
-    console.log(name, "server msg", JSON.stringify(msg));
+    //console.log(name, "server msg", JSON.stringify(msg));
     if (msg.pattern === "login") {
       first_room("join", {join: msg.data.login, name: msg.data.name});
     } else if (msg.pattern === "link") {
       let from_room = address(msg.data.from_room);
-      console.log("rooms", rooms);
+      //console.log("rooms", rooms);
       let new_room = null;
       if (!(msg.data.link in rooms)) {
         rooms[msg.data.link] = true;
@@ -28,7 +28,7 @@ function* main() {
       from_room("server_link", {link: msg.data.link, pos: msg.data.pos, player: msg.data.player});
     } else if (msg.pattern === "enter") {
       let from_room = address(msg.data.from_room);
-      console.log("enter", rooms);
+      //console.log("enter", rooms);
       from_room("part", {part: msg.data.player});
       let new_room = address(msg.data.enter);
       new_room("join", {join: msg.data.player, name: msg.data.name});

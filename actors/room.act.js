@@ -25,7 +25,7 @@ function* main() {
 
   while (true) {
     let msg = yield recv();
-    console.log(name, "room msg", JSON.stringify(msg));
+    //console.log(name, "room msg", JSON.stringify(msg));
     if (msg.pattern === 'join') {
       let pos = random(16) + "," + random(16);
       msg.data.addr = msg.data.join;
@@ -56,7 +56,7 @@ function* main() {
 
       joiner('room', {room: name, tiles: tiles, players: players, server: server, pos: pos, name: msg.data.name});
     } else if (msg.pattern === 'part') {
-      console.log("Part", msg.data.part, participants);
+      //console.log("Part", msg.data.part, participants);
       delete participants[msg.data.part];
       for (let i in participants) {
         participants[i].cast('room_part', msg.data);

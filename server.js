@@ -1,11 +1,11 @@
 
 "use strict";
 
-exports.listen = function(port) {
+exports.listen = function(port, message_log) {
   let actors = require('./actors.js'),
       uuid = require('node-uuid');
 
-  let vat = actors.Vat();
+  let vat = actors.Vat(undefined, message_log);
 
   let server_id = uuid.v4();
   let server = vat.spawn("actors/server.act.js", server_id);
@@ -39,7 +39,7 @@ exports.listen = function(port) {
       }
 
       function ui_func(pat, data) {
-        console.log("ui msg", pat, data);
+        //console.log("ui msg", pat, data);
         socket.send(JSON.stringify({pattern: pat, data: data}));
       }
 
@@ -50,7 +50,7 @@ exports.listen = function(port) {
     });
 
     socket.on('close', function () {
-      console.log("close");
+      //console.log("close");
       server('close', {close: socket.id});
     });
   });

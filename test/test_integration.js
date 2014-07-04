@@ -1,12 +1,14 @@
 
 var assert = require('assert'),
+    child = require('child_process'),
+    fs = require('fs'),
     test = require('selenium-webdriver/testing'),
-    webdriver = require('selenium-webdriver'),
-    child = require('child_process');
+    webdriver = require('selenium-webdriver');
 
 test.describe('Integration tests', function() {
   var d;
   var s;
+  var l;
   before(function() {
 
     var cont = true;
@@ -14,7 +16,13 @@ test.describe('Integration tests', function() {
       .withCapabilities(webdriver.Capabilities.chrome())
       .build();
 
-    s = require("../server.js").listen(8080);
+    l = fs.openSync("message.log", "w");
+    s = require("../server.js").listen(
+      8080,
+      function(name, pattern, data) {
+        fs.writeSync(l, name + " " + pattern + " " + JSON.stringify(data) + "\n")
+      }
+    );
   });
 
   beforeEach(function() {
@@ -26,7 +34,6 @@ test.describe('Integration tests', function() {
         if (elements.length) {
           return elements[0].getText().then(function(txt) {
             assert.equal(txt, "asdf");
-
             return elements[0];
           });
         }

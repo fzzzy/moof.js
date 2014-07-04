@@ -6,9 +6,9 @@ let vm = require('vm'),
     path = require('path'),
     uuid = require('node-uuid');
 
-exports.Vat = function Vat(global_logger) {
+exports.Vat = function Vat(global_logger, message_logger) {
    if (!(this instanceof Vat)) {
-     return new Vat(global_logger);
+     return new Vat(global_logger, message_logger);
    }
 
   if (global_logger === undefined) {
@@ -142,6 +142,10 @@ exports.Vat = function Vat(global_logger) {
 
     let cast = function cast(pattern, msg) {
       //console.log("casting", pattern, msg);
+      if (message_logger !== undefined) {
+        message_logger(name, pattern, msg);
+      }
+
       if (ctx.__mailbox[pattern] === undefined) {
         ctx.__mailbox[pattern] = [];
       }
