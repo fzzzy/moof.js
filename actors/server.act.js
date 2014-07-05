@@ -7,12 +7,67 @@ for (let x = 0; x < 16; x++) {
   }
 }
 
+function random(max) {
+  return Math.floor(Math.random() * max);
+}
+
 function* main() {
   for (let room_id in rooms) {
 	  let room = spawn("actors/room.act.js", room_id);
 	  room("server_started", {server: name});
   }
   let first_room = address(first_room_id);
+
+  function draw(x, y) {
+    let room_x = Math.floor(x / 16);
+    let room_y = Math.floor(y / 16);
+    let tile_x = x % 16;
+    let tile_y = y % 16;
+    let room = address("" + room_x + "," + room_y);
+    room("dig", {dig: "" + tile_x + "," + tile_y, tile: 2});
+  }
+
+  var x = 128;
+  var y = 128;
+
+  for (var i = 0; i < 65536 * 2; i++) {
+    draw(x, y);
+    var direction = random(8);
+    switch (direction) {
+      case 0:
+        y = y - 1;
+        break;
+      case 1:
+        x = x + 1;
+        y = y - 1;
+        break;
+      case 2:
+        x = x + 1;
+        break;
+      case 3:
+        x = x + 1;
+        y = y + 1;
+        break;
+      case 4:
+        y = y + 1;
+        break;
+      case 5:
+        x = x - 1;
+        y = y + 1;
+        break;
+      case 6:
+        x = x - 1;
+        break;
+      case 7:
+        x = x - 1;
+        y = y - 1;
+        break;
+    }
+    if (y < 0 || y > 256 || x < 0 || x > 256) {
+      x = 128;
+      y = 128;
+    }
+  }
 
   while (true) {
     let msg = yield recv();

@@ -26,4 +26,4 @@ To run the server:
 
 > ./server
 
-Then visit http://localhost:8080/ in your favorite browser.
+Then visit http://localhost:8080/ in your favorite WebSocket-supporting browser.
