@@ -15,9 +15,8 @@
   position: fixed;
   bottom: 0px;
   left: 0px;
-  right: 0px;
+  right: 152px;
   height: 1.125em;
-  border-top: 1px solid black;
 }
 
 #submit-input input[name=msg] {
@@ -27,6 +26,7 @@
   width: 100%;
   bottom: 0px;
   border: 0px;
+  border-top: 1px dotted #ababab;
 }
 
 #submit-input button[name=send]{
@@ -42,7 +42,7 @@
 
 #tileset {
   position: fixed;
-  top: 2em;
+  top: 0px;
   right: 0px;
   border: 1px solid black;
 }
@@ -67,7 +67,7 @@
 #dig {
   position: absolute;
   font-size: x-large;
-  top: 0px;
+  bottom: 0px;
   right: 0px;
   width: 148px;
 }

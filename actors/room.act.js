@@ -19,7 +19,11 @@ function* main() {
     let row = [];
     let linkrow = [];
     for (let x = 0; x < 16; x++) {
-      row.push(random(5));
+      if (x <= my_x && y <= my_y) {
+        row.push(2);
+      } else {
+        row.push(0);
+      }
       if (my_x !== null && my_y !== null) {
         if (x === 0) {
           if (my_x === 0) {
