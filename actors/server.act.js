@@ -22,6 +22,7 @@ function* main() {
       if (!(msg.data.link in rooms)) {
         rooms[msg.data.link] = true;
         new_room = spawn("actors/room.act.js", msg.data.link);
+        new_room("server_started", {server: name});
       } else {
   	    new_room = address(msg.data.link);
       }

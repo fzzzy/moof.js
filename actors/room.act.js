@@ -25,14 +25,12 @@ function* main() {
 
   while (true) {
     let msg = yield recv();
-    //console.log(name, "room msg", JSON.stringify(msg));
     if (msg.pattern === 'join') {
       let pos = random(16) + "," + random(16);
       msg.data.addr = msg.data.join;
       msg.data.pos = pos;
 
       let joiner_id = msg.data.join;
-
       let joiner = address(joiner_id);
 
       participants[joiner_id] = {
@@ -53,7 +51,6 @@ function* main() {
             msg.data);
         }
       }
-
       joiner('room', {room: name, tiles: tiles, players: players, server: server, pos: pos, name: msg.data.name});
     } else if (msg.pattern === 'part') {
       //console.log("Part", msg.data.part, participants);
@@ -76,9 +73,9 @@ function* main() {
         let player = address(msg.data.player);
         if (link.indexOf("http://") !== 0 && link.indexOf("https://") !== 0) {
           player("enter", {enter: link});
-          return;
+        } else {
+          player("room_link", {room_link: link});
         }
-        player("room_link", {room_link: link});
       }
       for (let i in participants) {
         participants[i].cast('room_go', {go: msg.data.go, addr: msg.data.player});

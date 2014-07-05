@@ -35,7 +35,7 @@ function* main() {
 
     if (msg.pattern === "room") {
       ui('room', msg.data);
-      room_id = msg.data.name;
+      room_id = msg.data.room;
       room = address(room_id);
       player_name = msg.data.name;
       //console.log("player name", player_name);
@@ -52,7 +52,11 @@ function* main() {
       server("link", {link: msg.data.link, from_room: room_id, pos: msg.data.pos, player: name});
 //      server("enter", {enter: msg.data.link, name: name, from_room: room_id});
     } else if (msg.pattern === "enter") {
-      server("enter", {enter: msg.data.enter, from_room: room_id, player: name});
+      server("enter", {
+        enter: msg.data.enter,
+        from_room: room_id,
+        player: name,
+        name: player_name});
     }
   }
 }
