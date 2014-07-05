@@ -2,6 +2,12 @@
 
 "use strict";
 
+let debug = false;
+let spew = undefined;
+if (debug) {
+  spew = function(name, pat, data) { console.log(name, pat, data)};
+}
+
 let server = require("./server.js");
 
-server.listen(8080);
+server.listen(8080, spew);

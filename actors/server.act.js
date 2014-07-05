@@ -89,7 +89,7 @@ function* main() {
     let msg = yield recv();
     //console.log(name, "server msg", JSON.stringify(msg));
     if (msg.pattern === "login") {
-      first_room("join", {join: msg.data.login, name: msg.data.name});
+      first_room("join", {join: msg.data.login, name: msg.data.name, pos: "7,7"});
     } else if (msg.pattern === "link") {
       let from_room = address(msg.data.from_room);
       //console.log("rooms", rooms);
@@ -107,7 +107,17 @@ function* main() {
       //console.log("enter", rooms);
       from_room("part", {part: msg.data.player});
       let new_room = address(msg.data.enter);
-      new_room("join", {join: msg.data.player, name: msg.data.name});
+      let old_pos = msg.data.pos;
+      let split_pos = msg.data.pos.split(",")
+      split_pos[0] = parseInt(split_pos[0]);
+      split_pos[1] = parseInt(split_pos[1]);
+      if (split_pos[0] === 0 || split_pos[0] === 15) {
+        split_pos[0] = -(split_pos[0] - 15);
+      }
+      if (split_pos[1] === 0 || split_pos[1] === 15) {
+        split_pos[1] = -(split_pos[1] - 15);        
+      }
+      new_room("join", {join: msg.data.player, name: msg.data.name, pos: split_pos.join(",")});
     } else if (msg.pattern === "close") {
       // todo use actual room player was in!
       first_room("part", {part: msg.data.close});

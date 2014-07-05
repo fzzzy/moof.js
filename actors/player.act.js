@@ -59,7 +59,8 @@ function* main() {
         enter: msg.data.enter,
         from_room: room_id,
         player: name,
-        name: player_name});
+        name: player_name,
+        pos: msg.data.pos});
     }
   }
 }
