@@ -58,7 +58,9 @@ exports.Vat = function Vat(global_logger, message_logger) {
       if (result.value.sleep !== undefined) {
         setTimeout(iterate, result.value.sleep, ctx);
       } else if (result.value.recv !== undefined) {
-        check_mailbox(ctx, result.value.recv, result.value.timeout);
+        process.nextTick(function() {
+          check_mailbox(ctx, result.value.recv, result.value.timeout);          
+        });
       }
     } else {
       delete actors[ctx.name];

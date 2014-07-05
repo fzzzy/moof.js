@@ -1,5 +1,5 @@
 
-var first_room_id = "7,7";
+var first_room_id = "3,3";
 var rooms = new Map();
 for (let x = 0; x < 16; x++) {
   for (let y = 0; y < 16; y++) {
@@ -18,55 +18,71 @@ function* main() {
   }
   let first_room = address(first_room_id);
 
-  function draw(x, y) {
+  let tiles = [];
+  for (let y = 0; y < 256; y++) {
+    let row = [];
+    for (let x = 0; x < 256; x++) {
+      row.push(0);
+    }
+    tiles.push(row);
+  }
+
+  function draw(x, y, t) {
+    tiles[y][x] = t;
     let room_x = Math.floor(x / 16);
     let room_y = Math.floor(y / 16);
     let tile_x = x % 16;
     let tile_y = y % 16;
     let room = address("" + room_x + "," + room_y);
-    room("dig", {dig: "" + tile_x + "," + tile_y, tile: 2});
+    room("dig", {dig: "" + tile_x + "," + tile_y, tile: t});
   }
 
   var x = 128;
   var y = 128;
+  var z = 65536 * 4;
 
-  for (var i = 0; i < 65536 * 2; i++) {
-    draw(x, y);
-    var direction = random(8);
-    switch (direction) {
-      case 0:
-        y = y - 1;
-        break;
-      case 1:
-        x = x + 1;
-        y = y - 1;
-        break;
-      case 2:
-        x = x + 1;
-        break;
-      case 3:
-        x = x + 1;
-        y = y + 1;
-        break;
-      case 4:
-        y = y + 1;
-        break;
-      case 5:
-        x = x - 1;
-        y = y + 1;
-        break;
-      case 6:
-        x = x - 1;
-        break;
-      case 7:
-        x = x - 1;
-        y = y - 1;
-        break;
+  for (var t = 0; t < 7; t++) {
+    for (var i = 0; i < z; i++) {
+      if (t === 0 || tiles[y][x] === t - 1 || tiles[y][x] === 8) {
+        draw(x, y, t);
+      }
+      var direction = random(4) * 2;
+      switch (direction) {
+        case 0:
+          y = y - 1;
+          break;
+        case 1:
+          x = x + 1;
+          y = y - 1;
+          break;
+        case 2:
+          x = x + 1;
+          break;
+        case 3:
+          x = x + 1;
+          y = y + 1;
+          break;
+        case 4:
+          y = y + 1;
+          break;
+        case 5:
+          x = x - 1;
+          y = y + 1;
+          break;
+        case 6:
+          x = x - 1;
+          break;
+        case 7:
+          x = x - 1;
+          y = y - 1;
+          break;
+      }
+      while (y < 5 || y > 250 || x < 5 || x > 250) {
+        x = random(256);
+        y = random(256);
+      }
     }
-    if (y < 0 || y > 256 || x < 0 || x > 256) {
-      x = 128;
-      y = 128;
-    }
+    z = z / 2;
   }
 
   while (true) {

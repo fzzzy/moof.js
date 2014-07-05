@@ -19,7 +19,7 @@ function* main() {
     let row = [];
     let linkrow = [];
     for (let x = 0; x < 16; x++) {
-      row.push(4);
+      row.push(8);
       if (my_x !== null && my_y !== null) {
         if (x === 0) {
           if (my_x === 0) {
