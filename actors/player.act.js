@@ -25,6 +25,9 @@ function* main() {
   room_id = msg.data.room;
   room = address(room_id);
   player_name = msg.data.name;
+
+  //console.log("hello player", player_name);
+
   ui('room', msg.data);
 
   //console.log(name, player_name, "player roommsg", JSON.stringify(msg));

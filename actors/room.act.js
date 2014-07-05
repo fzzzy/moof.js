@@ -21,7 +21,7 @@ function* main() {
   let started = yield recv("server_started");
   let server = started.data.server;
 
-  console.log("hello room");
+  //console.log("hello room", name);
 
   while (true) {
     let msg = yield recv();
