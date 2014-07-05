@@ -2,6 +2,8 @@
 "use strict";
 
 exports.listen = function(port, message_log) {
+  console.log("Server starting...");
+  let start = new Date();
   let actors = require('./actors.js'),
       uuid = require('node-uuid');
 
@@ -21,7 +23,9 @@ exports.listen = function(port, message_log) {
     }).resume();
   }).listen(port);
 
-  console.log("server listening on http://localhost:" + port + "/");
+  let end = new Date();
+  console.log("Startup time: " + (end - start) + " ms");
+  console.log("Server listening on http://localhost:" + port + "/");
 
   engine.attach(http).on('connection', function (socket) {
     let logged_in = false;

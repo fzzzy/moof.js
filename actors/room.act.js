@@ -11,7 +11,6 @@ function* main() {
   if (splitname.length === 2) {
     my_x = parseInt(splitname[0]);
     my_y = parseInt(splitname[1]);
-    console.log(my_x, my_y);
   }
   let participants = new Map();
   let tiles = [];
