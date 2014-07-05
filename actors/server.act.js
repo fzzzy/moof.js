@@ -1,7 +1,11 @@
 
-var first_room_id = "first-room";
+var first_room_id = "7,7";
 var rooms = new Map();
-rooms[first_room_id] = true;
+for (let x = 0; x < 16; x++) {
+  for (let y = 0; y < 16; y++) {
+    rooms["" + x + "," + y] = true;
+  }
+}
 
 function* main() {
   for (let room_id in rooms) {

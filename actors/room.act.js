@@ -5,6 +5,14 @@ function random(max) {
 
 
 function* main() {
+  let splitname = name.split(",");
+  let my_x = null;
+  let my_y = null;
+  if (splitname.length === 2) {
+    my_x = parseInt(splitname[0]);
+    my_y = parseInt(splitname[1]);
+    console.log(my_x, my_y);
+  }
   let participants = new Map();
   let tiles = [];
   let links = [];
@@ -12,8 +20,38 @@ function* main() {
     let row = [];
     let linkrow = [];
     for (let x = 0; x < 16; x++) {
-      row.push(0);
-      linkrow.push("");
+      row.push(random(5));
+      if (my_x !== null && my_y !== null) {
+        if (x === 0) {
+          if (my_x === 0) {
+            linkrow.push("15," + my_y);
+          } else {
+            linkrow.push("" + (my_x - 1) + "," + my_y);
+          }
+        } else if (x === 15) {
+          if (my_x === 15) {
+            linkrow.push("0," + my_y);
+          } else {
+            linkrow.push("" + (my_x + 1) + "," + my_y);
+          }
+        } else if (y === 0) {
+          if (my_y === 0) {
+            linkrow.push("" + my_x + ",15");
+          } else {
+            linkrow.push("" + my_x + "," + (my_y - 1));
+          }
+        } else if (y === 15) {
+          if (my_y === 15) {
+            linkrow.push("" + my_x + ",0");
+          } else {
+            linkrow.push("" + my_x + "," + (my_y + 1));
+          }
+        } else {
+          linkrow.push("");
+        }
+      } else {
+        linkrow.push("");
+      }
     }
     tiles.push(row);
     links.push(linkrow);
