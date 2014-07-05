@@ -72,3 +72,22 @@
   width: 148px;
 }
 
+#map {
+  width: 256px;
+}
+
+#map div {
+  height: 16px;
+}
+
+.map-canvas {
+}
+
+#loc {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 15px;
+  width: 15px;
+  border: 1px solid red;
+}

@@ -41,9 +41,16 @@ function* main() {
   var y = 128;
   var z = 65536 * 4;
 
-  for (var t = 0; t < 7; t++) {
+  var scalers = {
+    0: function(x) { return x; },
+    1: function(x) { return x - 3 * x / 4; },
+    2: function(x) { return x - x / 4; },
+    5: function(x) { x = x / 2; return x - 7 * x / 8; }
+  }
+
+  for (var t = 0; t < 8; t++) {
     for (var i = 0; i < z; i++) {
-      if (t === 0 || tiles[y][x] === t - 1 || tiles[y][x] === 8) {
+      if (t === 0 || t === 6 || t === 7 || tiles[y][x] === t - 1 || tiles[y][x] === 8) {
         draw(x, y, t);
       }
       var direction = random(4) * 2;
@@ -82,7 +89,25 @@ function* main() {
         y = random(256);
       }
     }
-    z = z / 2;
+    if (scalers[t]) {
+      z = scalers[t](z);
+    } else {
+      z = z / 2;
+    }
+  }
+
+  let frequency = {};
+  for (let f = 0; f < 8; f++) {
+    frequency[f] = 0;
+  }
+  for (let ix = 0; ix < 255; ix++) {
+    for (let iy = 0; iy < 255; iy++) {
+      let tile_num = tiles[iy][ix];
+      frequency[tile_num] = frequency[tile_num] + 1;
+    }
+  }
+  for (let f = 0; f < 8; f++) {
+    console.log(f, frequency[f]);
   }
 
   while (true) {

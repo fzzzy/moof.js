@@ -17,6 +17,10 @@
     <strong>Room:</strong> <span id="room-name">&nbsp;</span>
     <strong>Position:</strong> <span id="player-position">&nbsp;</span>
   </div>
+  <div id="map">
+  </div>
+  <div id="loc">
+  </div>
   <div id="tileset"></div>
   <select id="dig">
     <option value="move">Move</option>
@@ -37,9 +41,22 @@
   </form>
   <script>
 
+var colors = {
+  0: "green",
+  1: "darkgreen",
+  2: "gold",
+  3: "yellow",
+  4: "saddlebrown",
+  5: "grey",
+  6: "silver",
+  7: "white",
+  8: "blue"
+}
+
 var login_box = document.getElementById("login-box");
 var dig = document.getElementById("dig");
 var input_box = document.getElementById("submit-input").msg;
+var loc = document.getElementById("loc");
 
 window.onload = function() {
   login_box.name.focus();
@@ -91,6 +108,14 @@ function login(player_name) {
       if (msg.pattern === "room") {
         var room = document.getElementById("room-name");
         room.textContent = msg.data.room;
+        var map = document.getElementById("map-" + msg.data.room);
+        if (map) {
+          console.log("MAP", map);
+          var map_ctx = map.getContext('2d');
+          loc.style.top = map.offsetTop + "px";
+          loc.style.left = map.offsetLeft + "px";
+        }
+
         for (var i = 0; i < players.length; i++) {
           var pl = players[i];
           pl.parentNode.removeChild(pl);
@@ -99,6 +124,10 @@ function login(player_name) {
         console.log(data);
         for (var y = 0; y < 16; y++) {
           for (var x = 0; x < 16; x++) {
+            if (map) {
+              map_ctx.fillStyle = colors[msg.data.tiles[y][x]];
+              map_ctx.fillRect(x, y, 1, 1);
+            }
             tileimages[y][x].src = "tiles/" + msg.data.tiles[y][x] + ".png";
           }
         }
@@ -194,6 +223,25 @@ function login(player_name) {
     tileset.appendChild(row);
   }
 
+  var map = document.getElementById("map");
+  var mapcanvases = [];
+  for (var my = 0; my < 16; my++) {
+    var canvas_row = [];
+    var current_div = document.createElement('div');
+    map.appendChild(current_div);
+    for (var mx = 0; mx < 16; mx++) {
+      var c = document.createElement('canvas');
+      c.id = "map-" + mx + "," + my;
+      c.height = 16;
+      c.width = 16;
+      c.className = "map-canvas";
+      canvas_row.push(c);
+      current_div.appendChild(c);
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = "blue";
+      ctx.fillRect(0, 0, 16, 16);
+    }
+  }
   document.getElementById("submit-input").onsubmit = function(e) {
     e.preventDefault();
     socket.send(JSON.stringify({'pattern': 'msg', 'data': this.msg.value}));
