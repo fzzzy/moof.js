@@ -6,6 +6,24 @@ let vm = require('vm'),
     path = require('path'),
     uuid = require('node-uuid');
 
+let prefix = ('"use strict"; let name = arguments[0].name,' + 
+    'console = arguments[0].console,' +
+    'ui = arguments[0].ui,' +
+    'sleep = arguments[0].sleep,' +
+    'recv = arguments[0].recv,' +
+    'time_recv = arguments[0].time_recv,' +
+    'spawn_code = arguments[0].spawn_code,' +
+    'spawn = arguments[0].spawn,' +
+    'address = arguments[0].address,' +
+    'uuid = arguments[0].uuid; ');
+
+let postfix = ('; try { ' +
+    'return main(); ' +
+    '} catch (e) { ' + 
+    'return {next: function() { return {done: false, value: {} } }' +
+    '} }');
+
+
 exports.Vat = function Vat(global_logger, message_logger) {
    if (!(this instanceof Vat)) {
      return new Vat(global_logger, message_logger);
@@ -44,15 +62,14 @@ exports.Vat = function Vat(global_logger, message_logger) {
       ctx.__timeout = setTimeout(function() {
         ctx.__timeout = null;
         ctx.__waiting = null;
-        vm.runInContext("__g.throw(new Error('timeout'));", ctx, ctx.__filename);
+        ctx.__g.throw(new Error('timeout'));
       }, timeout);
     }
     ctx.__waiting = waitfor;
   }
 
   function iterate(ctx, val) {
-    ctx.__val = val;
-    let result = vm.runInContext("__g.next(__val);", ctx, ctx.__filename);
+    let result = ctx.__g.next(val);
     //console.log(result);
     if (!result.done) {
       if (result.value.sleep !== undefined) {
@@ -105,7 +122,7 @@ exports.Vat = function Vat(global_logger, message_logger) {
       throw new Error("attempted to start duplicate actor " + name);
     }
 
-    let ctx = vm.createContext({
+    let ctx = {
       name: name,
       __filename: filename,
       __mailbox: new Map(),
@@ -138,9 +155,9 @@ exports.Vat = function Vat(global_logger, message_logger) {
       spawn: spawn,
       address: address,
       uuid: uuid.v4
-    });
+    };
 
-    vm.runInContext('"use strict"; ' + code + "; var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, filename);
+    ctx.__g = new Function(prefix + code + postfix)(ctx);
 
     let cast = function cast(pattern, msg) {
       //console.log("casting", pattern, msg);

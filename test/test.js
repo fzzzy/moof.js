@@ -54,10 +54,12 @@ describe('Unit tests', function() {
       a('msg', 'message1');
       a('msg', 'message2');
       process.nextTick(function() {
-        assert.equal(o.logs.length, 2);
-        assert.equal(o.logs[0], 'message1');
-        assert.equal(o.logs[1], 'message2');
-        done();
+        process.nextTick(function() {
+          assert.equal(o.logs.length, 2);
+          assert.equal(o.logs[0], 'message1');
+          assert.equal(o.logs[1], 'message2');
+          done();
+        });
       })
     });
   });
