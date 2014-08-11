@@ -157,7 +157,9 @@ exports.Vat = function Vat(global_logger, message_logger) {
       uuid: uuid.v4
     };
 
-    ctx.__g = new Function(prefix + code + postfix)(ctx);
+    var fun = new Function(prefix + code + postfix);
+    fun.displayName = filename;
+    ctx.__g = fun(ctx);
 
     let cast = function cast(pattern, msg) {
       //console.log("casting", pattern, msg);
