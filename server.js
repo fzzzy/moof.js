@@ -2,7 +2,7 @@
 "use strict";
 
 exports.listen = function(port, message_log) {
-  console.log("Server starting...");
+  console.log("Server starting on port " + port + "...");
   let start = new Date();
   let actors = require('./actors.js'),
       uuid = require('node-uuid');
