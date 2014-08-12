@@ -6,6 +6,66 @@ let vm = require('vm'),
     path = require('path'),
     uuid = require('node-uuid');
 
+// https://github.com/substack/deep-freeze
+
+function deepFreeze (o) {
+  Object.freeze(o);
+
+  Object.getOwnPropertyNames(o).forEach(function (prop) {
+    try {      
+      if (o.hasOwnProperty(prop)
+      && o[prop] !== null
+      && (typeof o[prop] === "object" || typeof o[prop] === "function")
+      && !Object.isFrozen(o[prop])) {
+        deepFreeze(o[prop]);
+      }
+    } catch (e) {
+      
+    }
+  });
+  
+  return o;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
+
+let allowed_global_names = [
+  "eval", "isFinite", "isNaN", "parseFloat", "parseInt",
+  "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
+  "escape", "unescape", "Object", "Function", "Boolean", "Symbol",
+  "Error", "EvalError", "InternalError", "RangeError", "ReferenceError",
+  "SyntaxError", "TypeError", "URIError", "Number", "Math", "Date",
+  "String", "RegExp", "Array", "Float32Array", "Float64Array",
+  "Int16Array", "Int32Array", "Int8Array",
+  "Uint16Array", "Uint32Array", "Uint8Array", "Uint8ClampedArray",
+  "Map", "Set", "WeakMap", "WeakSet",
+  "ArrayBuffer", "DataView", "JSON", "Promise", "Proxy",
+  "setTimeout", "clearTimeout", "setInterval", "clearInterval"];
+
+let allowed_global_names_map = new Map();
+allowed_global_names_map["NaN"] = true;
+allowed_global_names_map["Infinity"] = true;
+
+// TODO move file and socket access out of the sandboxed code
+// and blacklist these objects.
+allowed_global_names_map["Buffer"] = true;
+allowed_global_names_map["process"] = true;
+allowed_global_names_map["global"] = true;
+allowed_global_names_map["util"] = true;
+allowed_global_names_map["undefined"] = true;
+allowed_global_names_map["DTRACE_NET_SERVER_CONNECTION"] = true;
+allowed_global_names_map["DTRACE_HTTP_SERVER_REQUEST"] = true;
+allowed_global_names_map["DTRACE_HTTP_SERVER_RESPONSE"] = true;
+
+
+for (let i in allowed_global_names) {
+  let name = allowed_global_names[i];
+  allowed_global_names_map[name] = true;
+  if (global[name] !== undefined) {
+    deepFreeze(global[name]);
+  }
+}
+
 let prefix = ('"use strict"; let name = arguments[0].name,' + 
     'console = arguments[0].console,' +
     'ui = arguments[0].ui,' +
@@ -17,6 +77,15 @@ let prefix = ('"use strict"; let name = arguments[0].name,' +
     'address = arguments[0].address,' +
     'uuid = arguments[0].uuid;' +
     'arguments[0] = null; ');
+
+let global_names = Object.getOwnPropertyNames(global || window);
+
+for (let i in global_names) {
+  let name = global_names[i];
+  if (allowed_global_names_map[name] === undefined) {
+    prefix += name + " = undefined; ";
+  }
+}
 
 let postfix = ('; try { ' +
     'return main(); ' +
