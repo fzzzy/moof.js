@@ -97,6 +97,7 @@ let postfix = ('; try { ' +
     'return {next: function() { return {done: false, value: {} } }' +
     '} }');
 
+let function_cache = new Map();
 
 exports.Vat = function Vat(global_logger, message_logger) {
    if (!(this instanceof Vat)) {
@@ -235,8 +236,21 @@ exports.Vat = function Vat(global_logger, message_logger) {
       uuid: uuid.v4
     };
 
-    var fun = new Function(prefix + code + postfix);
-    fun.displayName = filename;
+    function make_fun(code, filename) {
+      var fun = new Function(prefix + code + postfix);
+      fun.displayName = filename;
+      return fun;
+    }
+
+    let fun = null;
+    if (filename && filename.length > 1) {
+      if (!function_cache[filename]) {
+        function_cache[filename] = make_fun(code, filename);
+      }
+      fun = function_cache[filename];
+    } else {
+      fun = make_fun(code, filename);
+    }
     ctx.__g = fun(ctx);
 
     let cast = function cast(pattern, msg) {
