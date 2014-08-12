@@ -116,7 +116,7 @@ describe('Unit tests', function() {
   });
 
   describe('time_recv specific message', function() {
-    it('should clear the timeout on recv', function(done) {
+    it('should be able to recv a specific message pattern', function(done) {
       function ui(what) {
         if (what === "world") {
           done();
