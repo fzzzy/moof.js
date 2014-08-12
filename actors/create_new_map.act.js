@@ -9,9 +9,9 @@ function* main() {
   let msg = yield recv("startup"),
       server = address(msg.data.startup);
 
-  var x = 128;
-  var y = 128;
-  var z = 65536 * 4;
+  let x = 128;
+  let y = 128;
+  let z = 65536 * 4;
 
   let tiles = [];
   for (let y = 0; y < 256; y++) {
@@ -22,20 +22,27 @@ function* main() {
     tiles.push(row);
   }
 
-  var scalers = {
+  let scalers = {
     0: function(x) { return x; },
     1: function(x) { return x - 3 * x / 4; },
     2: function(x) { return x - x / 4; },
     5: function(x) { x = x / 2; return x - 7 * x / 8; }
   }
 
+  let rooms = new Map();
+
   function draw(x, y, t) {
     tiles[y][x] = t;
-    let room_x = Math.floor(x / 16);
-    let room_y = Math.floor(y / 16);
-    let tile_x = x % 16;
-    let tile_y = y % 16;
-    let room = address("" + room_x + "," + room_y);
+    let room_x = Math.floor(x / 16),
+        room_y = Math.floor(y / 16),
+        tile_x = x % 16,
+        tile_y = y % 16,
+        room_address = "" + room_x + "," + room_y,
+        room = rooms[room_address];
+
+    if (room === undefined) {
+      rooms[room_address] = room = address(room_address);
+    }
     room("dig", {dig: "" + tile_x + "," + tile_y, tile: t});
   }
 
