@@ -23,19 +23,11 @@ function tileval(tiles, x, y) {
 
 function make_tiles(name, my_x, my_y) {
   let tiles = [];
-  //
-  
-  let tile_actors = [];
   let links = [];
   for (let y = 0; y < 16; y++) {
     let row = [];
-    //let tilerow = [];
     let linkrow = [];
     for (let x = 0; x < 16; x++) {
-      let tilename = name + ":"  + tile(x, y);
-      //let tileactor = spawn("actors/tile.act.js", tilename);
-
-      //tilerow.push(tileactor);
       row.push(BLANK_TILE);
 
       if (my_x === null && my_y === null) {
