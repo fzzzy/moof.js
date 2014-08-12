@@ -107,6 +107,12 @@ describe('Unit tests', function() {
     });
   });
 
+  describe('time_recv_multiple', function() {
+    it('should be able to time out multiple times', function(done) {
+      o.vat.spawn_code("function* main() { try { yield time_recv(0.005); } catch (e) {  } console.log('timeout1'); try { yield time_recv(0.005); } catch(e) { ui() } }", "?", 'timeout', done);
+    });
+  });
+
   describe('time_recv', function() {
     it('should clear the timeout on recv', function(done) {
       let act = o.vat.spawn_code("function* main() { yield time_recv(1); ui() }", "?", 'time_recv', done);

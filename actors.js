@@ -136,15 +136,19 @@ exports.Vat = function Vat(global_logger, message_logger) {
       ctx.__timeout = setTimeout(function() {
         ctx.__timeout = null;
         ctx.__waiting = null;
-        ctx.__g.throw(new Error('timeout'));
+        iterate(ctx, new Error('timeout'), true);
       }, timeout);
     }
     ctx.__waiting = waitfor;
   }
 
-  function iterate(ctx, val) {
-    let result = ctx.__g.next(val);
-    //console.log(result);
+  function iterate(ctx, val, throwval) {
+    let result = null;
+    if (throwval) {
+      result = ctx.__g.throw(val);
+    } else {
+      result = ctx.__g.next(val);
+    }
     if (!result.done) {
       if (result.value.sleep !== undefined) {
         setTimeout(iterate, result.value.sleep, ctx);
