@@ -45,6 +45,7 @@ let allowed_global_names = [
 let allowed_global_names_map = new Map();
 allowed_global_names_map["NaN"] = true;
 allowed_global_names_map["Infinity"] = true;
+allowed_global_names_map["undefined"] = true;
 
 // TODO move file and socket access out of the sandboxed code
 // and blacklist these objects.
@@ -52,7 +53,6 @@ allowed_global_names_map["Buffer"] = true;
 allowed_global_names_map["process"] = true;
 allowed_global_names_map["global"] = true;
 allowed_global_names_map["util"] = true;
-allowed_global_names_map["undefined"] = true;
 allowed_global_names_map["DTRACE_NET_SERVER_CONNECTION"] = true;
 allowed_global_names_map["DTRACE_HTTP_SERVER_REQUEST"] = true;
 allowed_global_names_map["DTRACE_HTTP_SERVER_RESPONSE"] = true;
