@@ -15,7 +15,8 @@ let prefix = ('"use strict"; let name = arguments[0].name,' +
     'spawn_code = arguments[0].spawn_code,' +
     'spawn = arguments[0].spawn,' +
     'address = arguments[0].address,' +
-    'uuid = arguments[0].uuid; ');
+    'uuid = arguments[0].uuid;' +
+    'arguments[0] = null; ');
 
 let postfix = ('; try { ' +
     'return main(); ' +
