@@ -47,6 +47,9 @@ allowed_global_names_map["NaN"] = true;
 allowed_global_names_map["Infinity"] = true;
 allowed_global_names_map["undefined"] = true;
 
+// TODO this is leaky
+allowed_global_names_map["console"] = true;
+
 // TODO move file and socket access out of the sandboxed code
 // and blacklist these objects.
 allowed_global_names_map["Buffer"] = true;
@@ -75,17 +78,18 @@ let prefix = ('"use strict"; let name = arguments[0].name,' +
     'spawn_code = arguments[0].spawn_code,' +
     'spawn = arguments[0].spawn,' +
     'address = arguments[0].address,' +
-    'uuid = arguments[0].uuid;' +
-    'arguments[0] = null; ');
+    'uuid = arguments[0].uuid,');
 
 let global_names = Object.getOwnPropertyNames(global || window);
 
 for (let i in global_names) {
   let name = global_names[i];
   if (allowed_global_names_map[name] === undefined) {
-    prefix += name + " = undefined; ";
+    prefix += name + " = undefined,";
   }
 }
+
+prefix += "_____ = true; arguments[0] = null;";
 
 let postfix = ('; try { ' +
     'return main(); ' +
