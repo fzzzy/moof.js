@@ -23,11 +23,14 @@ function tileval(tiles, x, y) {
 
 function make_tiles(name, my_x, my_y) {
   let tiles = [];
+  let contents = [];
   let links = [];
   for (let y = 0; y < 16; y++) {
     let row = [];
+    let contentrow = [];
     let linkrow = [];
     for (let x = 0; x < 16; x++) {
+      contentrow.push(null);
       row.push(BLANK_TILE);
 
       if (my_x === null && my_y === null) {
@@ -64,12 +67,13 @@ function make_tiles(name, my_x, my_y) {
       }
     }
     tiles.push(row);
+    contents.push(contentrow);
     links.push(linkrow);
   }
-  return {tiles: tiles, links: links};
+  return {tiles: tiles, contents: contents, links: links};
 }
 
-function tile_evolve(room_ref, self, neighbors) {
+function tile_evolve(tile_name, room_ref, self, neighbors, content) {
   let reduction = neighbors.reduce(function(x,y) { return x + y | 0 });
   if (self !== BLANK_TILE) {
     if (reduction === BLANK_TILE * 8) {
@@ -77,7 +81,11 @@ function tile_evolve(room_ref, self, neighbors) {
     }
     if (self === 1) {
       if (random(12) === 0) {
-        room_ref('announce', {announce: 'Tree dropped apple.'});
+        if (content) {
+          console.log("tried to drop apple but space already occupied.");
+        } else {
+          room_ref('drop', {drop: tile_name, content: "apple", announce: 'Tree dropped apple.'});
+        }
       }
     }
   }
@@ -98,6 +106,7 @@ function* main() {
   let participants = new Map(),
       room_map = make_tiles(name, my_x, my_y),
       tiles = room_map.tiles,
+      contents = room_map.contents,
       links = room_map.links;
 
   let started = yield recv("server_started");
@@ -113,6 +122,7 @@ function* main() {
         let tile_name = tile(x, y),
             old_tile = tileval(tiles, x, y),
             new_tile = tile_evolve(
+              tile_name,
               self_ref,
               old_tile,
               [tileval(tiles, x - 1, y - 1),
@@ -122,7 +132,8 @@ function* main() {
               tileval(tiles, x + 1, y + 1),
               tileval(tiles, x, y + 1),
               tileval(tiles, x - 1, y + 1),
-              tileval(tiles, x - 1, y)]);
+              tileval(tiles, x - 1, y)],
+              contents[y][x]);
           if (new_tile !== old_tile) {
             self_ref('dig', {dig: tile_name, tile: new_tile});
           }
@@ -169,6 +180,13 @@ function* main() {
       for (let i in participants) {
         participants[i].cast('room_part', msg.data);
       }
+    } else if (msg.pattern === 'drop') {
+      let split_drop = msg.data.drop.split(",");
+      contents[split_drop[1]][split_drop[0]] = msg.data.content;
+      for (let i in participants) {
+        participants[i].cast(
+          'room_msg', {msg: msg.data.announce});
+      }
     } else if (msg.pattern === 'announce') {
       for (let i in participants) {
         participants[i].cast(
@@ -182,9 +200,16 @@ function* main() {
           addr: msg.data.player});
       }
     } else if (msg.pattern === 'go') {
-      let split = msg.data.go.split(",");
+      let split = msg.data.go.split(","),
+          parsed_x = parseInt(split[0]),
+          parsed_y = parseInt(split[1]);
       //console.log(name, "links", links);
-      let link = links[parseInt(split[1])][parseInt(split[0])];
+      let content = contents[parsed_y][parsed_x];
+      if (content) {
+        let player = address(msg.data.player);
+        player('room_msg', {msg: 'There is ' + content + ' here.'})
+      }
+      let link = links[parsed_y][parsed_x];
       if (link) {
         let player = address(msg.data.player);
         if (link.indexOf("http://") !== 0 && link.indexOf("https://") !== 0) {
