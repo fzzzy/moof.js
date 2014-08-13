@@ -1,4 +1,6 @@
 
+let TILES = {blank: 8};
+
 function random(max) {
   return Math.floor(Math.random() * max);
 }
@@ -31,7 +33,7 @@ function make_tiles(name, my_x, my_y) {
     let linkrow = [];
     for (let x = 0; x < 16; x++) {
       contentrow.push(null);
-      row.push(BLANK_TILE);
+      row.push(TILES.blank);
 
       if (my_x === null && my_y === null) {
         linkrow.push("");
@@ -75,9 +77,9 @@ function make_tiles(name, my_x, my_y) {
 
 function tile_evolve(tile_name, room_ref, self, neighbors, content) {
   let reduction = neighbors.reduce(function(x,y) { return x + y | 0 });
-  if (self !== BLANK_TILE) {
-    if (reduction === BLANK_TILE * 8) {
-      return BLANK_TILE;
+  if (self !== TILES.blank) {
+    if (reduction === TILES.blank * 8) {
+      return TILES.blank;
     }
     if (self === 1) {
       if (random(12) === 0) {
@@ -92,7 +94,6 @@ function tile_evolve(tile_name, room_ref, self, neighbors, content) {
   return self;
 }
 
-let BLANK_TILE = 8;
 
 function* main() {
   let self_ref = address(name);
