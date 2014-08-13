@@ -22,6 +22,7 @@
   <div id="loc">
   </div>
   <div id="tileset"></div>
+  <div id="contentset"></div>
   <select id="dig">
     <option value="move">Move</option>
     <option value="link">Link</option>
@@ -39,6 +40,7 @@
     <input name="msg" />
     <button name="send">Send</button>
   </form>
+  <div id="spacer">&nbsp;</div>
   <script>
 
 var colors = {
@@ -68,29 +70,37 @@ login_box.onsubmit = function(e) {
   input_box.focus();
 }
 
+var spacer = document.getElementById("spacer");
 
 var players = [];
 
+function output_log_message(msg_pat, msg) {
+  var node = document.createElement("div");
+  node.className = msg_pat;
+  node.textContent = msg;
+  document.body.insertBefore(node, spacer);
+  if (window.getSelection().anchorNode === input_box) {
+    //console.log("s3eLected");
+  }
+}
 
 function login(player_name) {
   var pos = "";
   var name = "";
   function add_player(pl) {
     var node = document.createElement("span");
-    console.log("add_player", pl);
+    //console.log("add_player", pl);
     node.id = pl.addr;
     node.textContent = pl.name;
     node.className = "player";
     players.push(node);
     var split = pl.pos.split(',');
     tile = tileimages[parseInt(split[1])][parseInt(split[0])];
-    console.log(tile.offsetTop, tile.offsetLeft);
+    //console.log(tile.offsetTop, tile.offsetLeft);
     node.style.top = (tile.offsetTop + 4) + "px";
     node.style.left = (tile.offsetLeft + 4) + "px";
     tileset.appendChild(node);
   }
-
-  var spacer = document.getElementById("spacer");
 
   var socket = new eio.Socket('ws://localhost:8080/');
   socket.on('open', function () {
@@ -104,13 +114,13 @@ function login(player_name) {
 
     socket.on('message', function (data) {
       var msg = JSON.parse(data);
-      console.log('got message', data);
+      //console.log('got message', data);
       if (msg.pattern === "room") {
         var room = document.getElementById("room-name");
         room.textContent = msg.data.room;
         var map = document.getElementById("map-" + msg.data.room);
         if (map) {
-          console.log("MAP", map);
+          //console.log("MAP", map);
           var map_ctx = map.getContext('2d');
           loc.style.top = map.offsetTop + "px";
           loc.style.left = map.offsetLeft + "px";
@@ -121,7 +131,7 @@ function login(player_name) {
           pl.parentNode.removeChild(pl);
         }
         players = [];
-        console.log(data);
+        //console.log(data);
         for (var y = 0; y < 16; y++) {
           for (var x = 0; x < 16; x++) {
             if (map) {
@@ -139,18 +149,12 @@ function login(player_name) {
             var position = document.getElementById("player-position");
             position.textContent = msg.data.pos;
             pos = msg.data.pos;
-            console.log("PLAYER NAME", msg.data.name);
+            //console.log("PLAYER NAME", msg.data.name);
           }
           add_player(msg.data.players[i]);
         }
       } else if (msg.pattern === "room_msg") {
-        var node = document.createElement("div");
-        node.className = msg.pattern;
-        node.textContent = msg.data.msg;
-        document.body.insertBefore(node, spacer);
-        if (window.getSelection().anchorNode === input_box) {
-          console.log("s3eLected");
-        }
+        output_log_message(msg.pattern, msg.data.msg);
       } else if (msg.pattern === "room_join") {
         add_player(msg.data);
       } else if (msg.pattern === "room_part") {
@@ -158,16 +162,16 @@ function login(player_name) {
         var player_node = document.getElementById(msg.data.part);
         player_node.parentNode.removeChild(player_node);
       } else if (msg.pattern === "room_go") {
-        console.log("looking for player", msg.data.addr);
+        //console.log("looking for player", msg.data.addr);
         var node = document.getElementById(msg.data.addr);
         if (node.textContent === name) {
           var pl_pos = document.getElementById("player-position");
           pl_pos.textContent = msg.data.go;
         }
-        console.log(node);
+        //console.log(node);
         var split = msg.data.go.split(',');
         tile = tileimages[parseInt(split[1])][parseInt(split[0])];
-        console.log(tile.offsetTop, tile.offsetLeft);
+        //console.log(tile.offsetTop, tile.offsetLeft);
         node.style.top = (tile.offsetTop + 4) + "px";
         node.style.left = (tile.offsetLeft + 4) + "px";
       } else if (msg.pattern === "room_dig") {
@@ -180,16 +184,24 @@ function login(player_name) {
         document.body.insertBefore(frame, spacer);
         var br = document.createElement("br");
         document.body.insertBefore(br, spacer);
+      } else if (msg.pattern === "room_drop") {
+        var split = msg.data.drop.split(",");
+        var drop_x = parseInt(split[0]);
+        var drop_y = parseInt(split[1]);
+        contentimages[drop_y][drop_x].src = "content/" + msg.data.content + ".png";
+        console.log("ROOM DROP!!!");
       } else {
         console.log("unknown message ignored", data);
       }
     });
-    socket.on('close', function () { console.log("close"); });
+    socket.on('close', function () {
+      output_log_message("", "The remote server closed the connection.")
+    });
   });
 
   function create_onclick(x, y) {
     return function(e) {
-      console.log("dig.value", dig.value, x, y);
+      //console.log("dig.value", dig.value, x, y);
       if (dig.value === "move") {
         socket.send(JSON.stringify({pattern: 'go', data: "" + x + "," + y}));
       } else if (dig.value === "link") {
@@ -208,19 +220,30 @@ function login(player_name) {
   
   var tileset = document.getElementById("tileset");
   var tileimages = [];
+  var contentset = document.getElementById("contentset");
+  var contentimages = [];
   
   for (var y = 0; y < 16; y++) {
     var row = document.createElement("div");
+    var contentsrow = document.createElement("div");
     var rowarray = [];
+    var contentsarray = [];
     for (var x = 0; x < 16; x++) {
       var img = document.createElement("img");
       img.id = "" + x + "," + y;
       img.onclick = create_onclick(x, y);
       rowarray.push(img);
       row.appendChild(img);
+      var contentimg = document.createElement("img");
+      contentimg.id = "content-" + x + "," + y;
+      contentimg.src = "content/transparent.png";
+      contentsarray.push(contentimg);
+      contentsrow.appendChild(contentimg);
     }
     tileimages.push(rowarray);
     tileset.appendChild(row);
+    contentimages.push(contentsarray);
+    contentset.appendChild(contentsrow);
   }
 
   var map = document.getElementById("map");
@@ -252,6 +275,5 @@ function login(player_name) {
 }
 
   </script>
-  <div id="spacer">&nbsp;</div>
   </body>
 </html>

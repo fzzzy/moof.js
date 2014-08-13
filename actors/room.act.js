@@ -82,7 +82,7 @@ function tile_evolve(tile_name, room_ref, self, neighbors, content) {
       return TILES.blank;
     }
     if (self === 1) {
-      if (random(12) === 0) {
+      if (true /*random(12) === 0*/) {
         if (content) {
           console.log("tried to drop apple but space already occupied.");
         } else {
@@ -156,6 +156,8 @@ function* main() {
       let joiner_id = msg.data.join;
       let joiner = address(joiner_id);
 
+      console.log("join", joiner_id);
+
       participants[joiner_id] = {
         cast: joiner,
         addr: joiner_id,
@@ -184,9 +186,15 @@ function* main() {
     } else if (msg.pattern === 'drop') {
       let split_drop = msg.data.drop.split(",");
       contents[split_drop[1]][split_drop[0]] = msg.data.content;
+      console.log("drop", JSON.stringify(participants));
       for (let i in participants) {
-        participants[i].cast(
-          'room_msg', {msg: msg.data.announce});
+        console.log("drop", i);
+        try {
+          participants[i].cast(
+            'room_drop', {drop: msg.data.drop, content: msg.data.content, announce: msg.data.announce});
+        } catch (e) {
+          console.log("ER", e);
+        }
       }
     } else if (msg.pattern === 'announce') {
       for (let i in participants) {

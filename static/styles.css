@@ -57,6 +57,24 @@
   height: 32px;
 }
 
+#contentset {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  border: 1px solid black;
+  pointer-events: none;
+}
+
+#contentset img {
+  height: 32px;
+  width: 32px;
+  border: none;
+}
+
+#contentset div {
+  height: 32px;
+}
+
 .player {
   position: absolute;
   background-color: white;

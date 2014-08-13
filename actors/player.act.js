@@ -7,6 +7,7 @@ room_messages['room_part'] = true;
 room_messages['room_go'] = true;
 room_messages['room_dig'] = true;
 room_messages['room_link'] = true;
+room_messages['room_drop'] = true;
 
 
 function* main() {
