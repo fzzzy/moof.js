@@ -189,7 +189,6 @@ function login(player_name) {
         var drop_x = parseInt(split[0]);
         var drop_y = parseInt(split[1]);
         contentimages[drop_y][drop_x].src = "content/" + msg.data.content + ".png";
-        console.log("ROOM DROP!!!");
       } else {
         console.log("unknown message ignored", data);
       }

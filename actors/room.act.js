@@ -83,9 +83,7 @@ function tile_evolve(tile_name, room_ref, self, neighbors, content) {
     }
     if (self === 1) {
       if (true /*random(12) === 0*/) {
-        if (content) {
-          console.log("tried to drop apple but space already occupied.");
-        } else {
+        if (!content) {
           room_ref('drop', {drop: tile_name, content: "apple", announce: 'Tree dropped apple.'});
         }
       }
