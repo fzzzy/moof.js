@@ -21,6 +21,7 @@
   </div>
   <div id="loc">
   </div>
+  <div id="inventory"></div>
   <div id="tileset"></div>
   <div id="contentset"></div>
   <select id="dig">
@@ -188,7 +189,22 @@ function login(player_name) {
         var split = msg.data.drop.split(",");
         var drop_x = parseInt(split[0]);
         var drop_y = parseInt(split[1]);
+        output_log_message("", msg.data.announce);
         contentimages[drop_y][drop_x].src = "content/" + msg.data.content + ".png";
+      } else if (msg.pattern === "room_get") {
+        var split = msg.data.get.split(",");
+        var get_x = parseInt(split[0]);
+        var get_y = parseInt(split[1]);
+        var content = msg.data.content;
+        contentimages[get_y][get_x].src = "content/transparent.png";
+        output_log_message("", msg.data.announce);
+        if (socket.id === msg.data.player) {
+          inventory.push(content);
+          console.log("inventory", inventory);
+          var inv = document.getElementById("inventory");
+          inv.textContent = "You have: " + inventory.join(", ");
+        }
+        console.log("ROOM_GET", content);
       } else {
         console.log("unknown message ignored", data);
       }
@@ -221,6 +237,7 @@ function login(player_name) {
   var tileimages = [];
   var contentset = document.getElementById("contentset");
   var contentimages = [];
+  var inventory = [];
   
   for (var y = 0; y < 16; y++) {
     var row = document.createElement("div");

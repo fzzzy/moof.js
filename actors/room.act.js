@@ -184,15 +184,9 @@ function* main() {
     } else if (msg.pattern === 'drop') {
       let split_drop = msg.data.drop.split(",");
       contents[split_drop[1]][split_drop[0]] = msg.data.content;
-      console.log("drop", JSON.stringify(participants));
       for (let i in participants) {
-        console.log("drop", i);
-        try {
-          participants[i].cast(
-            'room_drop', {drop: msg.data.drop, content: msg.data.content, announce: msg.data.announce});
-        } catch (e) {
-          console.log("ER", e);
-        }
+        participants[i].cast(
+          'room_drop', {drop: msg.data.drop, content: msg.data.content, announce: msg.data.announce});
       }
     } else if (msg.pattern === 'announce') {
       for (let i in participants) {
@@ -214,7 +208,16 @@ function* main() {
       let content = contents[parsed_y][parsed_x];
       if (content) {
         let player = address(msg.data.player);
-        player('room_msg', {msg: 'There is ' + content + ' here.'})
+        contents[parsed_y][parsed_x] = "";
+        for (let i in participants) {
+          participants[i].cast(
+            'room_get',
+            {
+              get: msg.data.go,
+              content: content,
+              player: msg.data.player,
+              announce: participants[msg.data.player].name + ' takes ' + content + '.'});
+        }
       }
       let link = links[parsed_y][parsed_x];
       if (link) {
