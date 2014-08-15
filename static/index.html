@@ -204,14 +204,12 @@ function login(player_name) {
         contentimages[get_y][get_x].src = "content/transparent.png";
         output_log_message("", msg.data.announce);
         if (socket.id === msg.data.player) {
-          inventory.push(content);
-          console.log("inventory", inventory);
-          var inv = document.getElementById("inventory");
-          var div = document.createElement("div");
-          div.textContent = content;
-          inv.appendChild(div);
+          add_inventory(content);
         }
         console.log("ROOM_GET", content);
+      } else if (msg.pattern === "room_refuse_drop") {
+        add_inventory(msg.data.refuse_drop);
+        output_log_message("", "There's no room to drop that here.");
       } else {
         console.log("unknown message ignored", data);
       }
@@ -245,7 +243,24 @@ function login(player_name) {
   var contentset = document.getElementById("contentset");
   var contentimages = [];
   var inventory = [];
-  
+
+  function add_inventory(content) {
+    inventory.push(content);
+    console.log("inventory", inventory);
+    var inv = document.getElementById("inventory");
+    var div = document.createElement("div");
+    var but = document.createElement("button");
+    but.textContent = "drop";
+    but.onclick = function() {
+      inventory.splice(inventory.indexOf(content), 1);
+      inv.removeChild(div);
+      socket.send(JSON.stringify({pattern: 'drop', data: {drop: content}}));
+    }
+    div.textContent = content;
+    div.appendChild(but);
+    inv.appendChild(div);
+  }  
+
   for (var y = 0; y < 16; y++) {
     var row = document.createElement("div");
     var contentsrow = document.createElement("div");

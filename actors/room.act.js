@@ -183,10 +183,16 @@ function* main() {
       }
     } else if (msg.pattern === 'drop') {
       let split_drop = msg.data.drop.split(",");
-      contents[split_drop[1]][split_drop[0]] = msg.data.content;
-      for (let i in participants) {
-        participants[i].cast(
-          'room_drop', {drop: msg.data.drop, content: msg.data.content, announce: msg.data.announce});
+      if (contents[split_drop[1]][split_drop[0]]) {
+        let player = address(msg.data.player);
+        player('room_refuse_drop', {refuse_drop: msg.data.content});
+      } else {
+        contents[split_drop[1]][split_drop[0]] = msg.data.content;
+        
+        for (let i in participants) {
+          participants[i].cast(
+            'room_drop', {drop: msg.data.drop, content: msg.data.content, announce: msg.data.announce});
+        }
       }
     } else if (msg.pattern === 'announce') {
       for (let i in participants) {
