@@ -1,4 +1,8 @@
 
+body {
+  width: 30em;
+}
+
 #login-box {
   position: fixed;
   top: 0px;
@@ -109,3 +113,8 @@
   width: 15px;
   border: 1px solid red;
 }
+
+#inventory {
+  border: 1px dotted; #1a1a1a;
+}
+

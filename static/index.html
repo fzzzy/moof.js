@@ -21,7 +21,7 @@
   </div>
   <div id="loc">
   </div>
-  <div id="inventory"></div>
+  <div id="inventory">Inventory</div>
   <div id="tileset"></div>
   <div id="contentset"></div>
   <select id="dig">
@@ -140,6 +140,11 @@ function login(player_name) {
               map_ctx.fillRect(x, y, 1, 1);
             }
             tileimages[y][x].src = "tiles/" + msg.data.tiles[y][x] + ".png";
+            var contentname = msg.data.contents[y][x];
+            if (!contentname) {
+              contentname = "transparent";
+            }
+            contentimages[y][x].src = "content/" + contentname + ".png";
           }
         }
         for (var i = 0; i < msg.data.players.length; i++) {
@@ -202,7 +207,9 @@ function login(player_name) {
           inventory.push(content);
           console.log("inventory", inventory);
           var inv = document.getElementById("inventory");
-          inv.textContent = "You have: " + inventory.join(", ");
+          var div = document.createElement("div");
+          div.textContent = content;
+          inv.appendChild(div);
         }
         console.log("ROOM_GET", content);
       } else {

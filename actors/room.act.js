@@ -174,7 +174,7 @@ function* main() {
             msg.data);
         }
       }
-      joiner('room', {room: name, tiles: tiles, players: players, server: server, pos: msg.data.pos, name: msg.data.name});
+      joiner('room', {room: name, tiles: tiles, contents: contents, players: players, server: server, pos: msg.data.pos, name: msg.data.name});
     } else if (msg.pattern === 'part') {
       //console.log("Part", msg.data.part, participants);
       delete participants[msg.data.part];
