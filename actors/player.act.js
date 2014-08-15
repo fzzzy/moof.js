@@ -9,7 +9,6 @@ room_messages['room_dig'] = true;
 room_messages['room_link'] = true;
 room_messages['room_drop'] = true;
 room_messages['room_refuse_drop'] = true;
-room_messages['room_get'] = true;
 
 
 function* main() {
@@ -20,7 +19,8 @@ function* main() {
       room_id = null,
       room = null,
       player_name = null,
-      position = "7,7";
+      position = "7,7",
+      inventory = [];
 
   let msg = yield recv("room");
 
@@ -67,7 +67,14 @@ function* main() {
         name: player_name,
         pos: msg.data.pos});
     } else if (msg.pattern === "drop") {
-      room("drop", {drop: position, content: msg.data.drop, announce: player_name + " drops " + msg.data.drop + ".", player: name});
+      let index = inventory.indexOf(msg.data.drop);
+      if (index !== -1) {
+        inventory.splice(index, 1);
+        room("drop", {drop: position, content: msg.data.drop, announce: player_name + " drops " + msg.data.drop + ".", player: name});
+      }
+    } else if (msg.pattern === "room_get") {
+      inventory.push(msg.data.content);
+      ui(msg.pattern, msg.data);
     }
   }
 }
