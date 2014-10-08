@@ -2,6 +2,11 @@
 
 "use strict";
 
+var startup_actor = null;
+if (process.argv.length === 3) {
+  startup_actor = process.argv[2];
+}
+
 let debug = false;
 let spew = undefined;
 if (debug) {
@@ -10,4 +15,5 @@ if (debug) {
 
 let server = require("./server.js");
 
-server.listen(8080, spew);
+server.listen(8080, spew, startup_actor);
+

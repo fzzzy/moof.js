@@ -7,6 +7,8 @@ room_messages['room_part'] = true;
 room_messages['room_go'] = true;
 room_messages['room_dig'] = true;
 room_messages['room_link'] = true;
+room_messages['room_drop'] = true;
+room_messages['room_refuse_drop'] = true;
 
 
 function* main() {
@@ -16,7 +18,9 @@ function* main() {
       server = null,
       room_id = null,
       room = null,
-      player_name = null;
+      player_name = null,
+      position = "7,7",
+      inventory = [];
 
   let msg = yield recv("room");
 
@@ -48,6 +52,7 @@ function* main() {
       room(msg.pattern, {msg: msg.data, player: name});
     } else if (msg.pattern === "go") {
       room("go", {go: msg.data, server: server_id, player: name});
+      position = msg.data;
     } else if (msg.pattern === "dig") {
       room("dig", msg.data);
     } else if (msg.pattern === "link") {
@@ -61,6 +66,15 @@ function* main() {
         player: name,
         name: player_name,
         pos: msg.data.pos});
+    } else if (msg.pattern === "drop") {
+      let index = inventory.indexOf(msg.data.drop);
+      if (index !== -1) {
+        inventory.splice(index, 1);
+        room("drop", {drop: position, content: msg.data.drop, announce: player_name + " drops " + msg.data.drop + ".", player: name});
+      }
+    } else if (msg.pattern === "room_get") {
+      inventory.push(msg.data.content);
+      ui(msg.pattern, msg.data);
     }
   }
 }

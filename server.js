@@ -1,8 +1,8 @@
 
 "use strict";
 
-exports.listen = function(port, message_log) {
-  console.log("Server starting...");
+exports.listen = function(port, message_log, startup_actor) {
+  console.log("Server starting on port " + port + "...");
   let start = new Date();
   let actors = require('./actors.js'),
       uuid = require('node-uuid');
@@ -11,6 +11,10 @@ exports.listen = function(port, message_log) {
 
   let server_id = uuid.v4();
   let server = vat.spawn("actors/server.act.js", server_id);
+  if (startup_actor) {
+    let _sa = vat.spawn(startup_actor);
+    _sa('startup', {startup: server_id});
+  }
 
   let engine = require('engine.io');
 

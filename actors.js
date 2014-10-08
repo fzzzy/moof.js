@@ -6,6 +6,99 @@ let vm = require('vm'),
     path = require('path'),
     uuid = require('node-uuid');
 
+// https://github.com/substack/deep-freeze
+
+function deepFreeze (o) {
+  Object.freeze(o);
+
+  Object.getOwnPropertyNames(o).forEach(function (prop) {
+    try {      
+      if (o.hasOwnProperty(prop)
+      && o[prop] !== null
+      && (typeof o[prop] === "object" || typeof o[prop] === "function")
+      && !Object.isFrozen(o[prop])) {
+        deepFreeze(o[prop]);
+      }
+    } catch (e) {
+      
+    }
+  });
+  
+  return o;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
+
+let allowed_global_names = [
+  "eval", "isFinite", "isNaN", "parseFloat", "parseInt",
+  "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
+  "escape", "unescape", "Object", "Function", "Boolean", "Symbol",
+  "Error", "EvalError", "InternalError", "RangeError", "ReferenceError",
+  "SyntaxError", "TypeError", "URIError", "Number", "Math", "Date",
+  "String", "RegExp", "Array", "Float32Array", "Float64Array",
+  "Int16Array", "Int32Array", "Int8Array",
+  "Uint16Array", "Uint32Array", "Uint8Array", "Uint8ClampedArray",
+  "Map", "Set", "WeakMap", "WeakSet",
+  "ArrayBuffer", "DataView", "JSON", "Promise", "Proxy",
+  "setTimeout", "clearTimeout", "setInterval", "clearInterval"];
+
+let allowed_global_names_map = new Map();
+allowed_global_names_map["NaN"] = true;
+allowed_global_names_map["Infinity"] = true;
+allowed_global_names_map["undefined"] = true;
+
+// TODO this is leaky
+allowed_global_names_map["console"] = true;
+
+// TODO move file and socket access out of the sandboxed code
+// and blacklist these objects.
+allowed_global_names_map["Buffer"] = true;
+allowed_global_names_map["process"] = true;
+allowed_global_names_map["global"] = true;
+allowed_global_names_map["util"] = true;
+allowed_global_names_map["DTRACE_NET_SERVER_CONNECTION"] = true;
+allowed_global_names_map["DTRACE_HTTP_SERVER_REQUEST"] = true;
+allowed_global_names_map["DTRACE_HTTP_SERVER_RESPONSE"] = true;
+
+
+for (let i in allowed_global_names) {
+  let name = allowed_global_names[i];
+  allowed_global_names_map[name] = true;
+  if (global[name] !== undefined) {
+    deepFreeze(global[name]);
+  }
+}
+
+let prefix = ('"use strict"; let name = arguments[0].name,' + 
+    'console = arguments[0].console,' +
+    'ui = arguments[0].ui,' +
+    'sleep = arguments[0].sleep,' +
+    'recv = arguments[0].recv,' +
+    'time_recv = arguments[0].time_recv,' +
+    'spawn_code = arguments[0].spawn_code,' +
+    'spawn = arguments[0].spawn,' +
+    'address = arguments[0].address,' +
+    'uuid = arguments[0].uuid,');
+
+let global_names = Object.getOwnPropertyNames(global || window);
+
+for (let i in global_names) {
+  let name = global_names[i];
+  if (allowed_global_names_map[name] === undefined) {
+    prefix += name + " = undefined,";
+  }
+}
+
+prefix += "_____ = true; arguments[0] = null;";
+
+let postfix = ('; try { ' +
+    'return main(); ' +
+    '} catch (e) { ' + 
+    'return {next: function() { return {done: false, value: {} } }' +
+    '} }');
+
+let function_cache = new Map();
+
 exports.Vat = function Vat(global_logger, message_logger) {
    if (!(this instanceof Vat)) {
      return new Vat(global_logger, message_logger);
@@ -44,16 +137,19 @@ exports.Vat = function Vat(global_logger, message_logger) {
       ctx.__timeout = setTimeout(function() {
         ctx.__timeout = null;
         ctx.__waiting = null;
-        vm.runInContext("__g.throw(new Error('timeout'));", ctx, ctx.__filename);
+        iterate(ctx, new Error('timeout'), true);
       }, timeout);
     }
     ctx.__waiting = waitfor;
   }
 
-  function iterate(ctx, val) {
-    ctx.__val = val;
-    let result = vm.runInContext("__g.next(__val);", ctx, ctx.__filename);
-    //console.log(result);
+  function iterate(ctx, val, throwval) {
+    let result = null;
+    if (throwval) {
+      result = ctx.__g.throw(val);
+    } else {
+      result = ctx.__g.next(val);
+    }
     if (!result.done) {
       if (result.value.sleep !== undefined) {
         setTimeout(iterate, result.value.sleep, ctx);
@@ -105,7 +201,7 @@ exports.Vat = function Vat(global_logger, message_logger) {
       throw new Error("attempted to start duplicate actor " + name);
     }
 
-    let ctx = vm.createContext({
+    let ctx = {
       name: name,
       __filename: filename,
       __mailbox: new Map(),
@@ -138,9 +234,24 @@ exports.Vat = function Vat(global_logger, message_logger) {
       spawn: spawn,
       address: address,
       uuid: uuid.v4
-    });
+    };
 
-    vm.runInContext('"use strict"; ' + code + "; var __g; if (this['main']) { __g = main(); } else { __g = {next: function() { return {done: false, value: {} } } } }", ctx, filename);
+    function make_fun(code, filename) {
+      var fun = new Function(prefix + code + postfix);
+      fun.displayName = filename;
+      return fun;
+    }
+
+    let fun = null;
+    if (filename && filename.length > 1) {
+      if (!function_cache[filename]) {
+        function_cache[filename] = make_fun(code, filename);
+      }
+      fun = function_cache[filename];
+    } else {
+      fun = make_fun(code, filename);
+    }
+    ctx.__g = fun(ctx);
 
     let cast = function cast(pattern, msg) {
       //console.log("casting", pattern, msg);

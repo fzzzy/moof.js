@@ -38,7 +38,7 @@ test.describe('Integration tests', function() {
           });
         }
       });
-    }, 1000, 'Failed to find player after 1 second');
+    }, 5000, 'Failed to find player after 5 second');
   });
 
   after(function(done) {
@@ -47,12 +47,12 @@ test.describe('Integration tests', function() {
   });
 
   test.it('should be able to go to a tile', function() {
-    return d.findElement(webdriver.By.id("0,0")).then(function(el) {
+    return d.findElement(webdriver.By.id("1,1")).then(function(el) {
       el.click();
       return d.wait(function() {
         return d.findElement(webdriver.By.id('player-position')).then(function(element) {
           return element.getText().then(function(txt) {
-            assert.equal(txt, "0,0");
+            assert.equal(txt, "1,1");
             return element;
           });
         });

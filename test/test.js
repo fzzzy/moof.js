@@ -54,10 +54,12 @@ describe('Unit tests', function() {
       a('msg', 'message1');
       a('msg', 'message2');
       process.nextTick(function() {
-        assert.equal(o.logs.length, 2);
-        assert.equal(o.logs[0], 'message1');
-        assert.equal(o.logs[1], 'message2');
-        done();
+        process.nextTick(function() {
+          assert.equal(o.logs.length, 2);
+          assert.equal(o.logs[0], 'message1');
+          assert.equal(o.logs[1], 'message2');
+          done();
+        });
       })
     });
   });
@@ -105,6 +107,12 @@ describe('Unit tests', function() {
     });
   });
 
+  describe('time_recv_multiple', function() {
+    it('should be able to time out multiple times', function(done) {
+      o.vat.spawn_code("function* main() { try { yield time_recv(0.005); } catch (e) {  } console.log('timeout1'); try { yield time_recv(0.005); } catch(e) { ui() } }", "?", 'timeout', done);
+    });
+  });
+
   describe('time_recv', function() {
     it('should clear the timeout on recv', function(done) {
       let act = o.vat.spawn_code("function* main() { yield time_recv(1); ui() }", "?", 'time_recv', done);
@@ -114,7 +122,7 @@ describe('Unit tests', function() {
   });
 
   describe('time_recv specific message', function() {
-    it('should clear the timeout on recv', function(done) {
+    it('should be able to recv a specific message pattern', function(done) {
       function ui(what) {
         if (what === "world") {
           done();

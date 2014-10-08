@@ -1,4 +1,8 @@
 
+body {
+  width: 30em;
+}
+
 #login-box {
   position: fixed;
   top: 0px;
@@ -57,6 +61,24 @@
   height: 32px;
 }
 
+#contentset {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  border: 1px solid black;
+  pointer-events: none;
+}
+
+#contentset img {
+  height: 32px;
+  width: 32px;
+  border: none;
+}
+
+#contentset div {
+  height: 32px;
+}
+
 .player {
   position: absolute;
   background-color: white;
@@ -91,3 +113,16 @@
   width: 15px;
   border: 1px solid red;
 }
+
+#inventory {
+  border: 1px dotted; #1a1a1a;
+}
+
+#inventory div {
+  height: 1.5em;
+}
+
+#inventory button {
+  float: right;
+}
+
