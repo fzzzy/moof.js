@@ -18,7 +18,7 @@ function* main() {
     let msg = yield recv();
     //console.log(name, "server msg", JSON.stringify(msg));
     if (msg.pattern === "login") {
-      first_room("join", {join: msg.data.login, name: msg.data.name, pos: "7,7"});
+      first_room("join", {join: msg.data.login, name: msg.data.name, pos: "7,7,7"});
     } else if (msg.pattern === "link") {
       let from_room = address(msg.data.from_room);
       //console.log("rooms", rooms);

@@ -16,6 +16,9 @@
     <strong>Player:</strong> <span id="player-name">&nbsp;</span>
     <strong>Room:</strong> <span id="room-name">&nbsp;</span>
     <strong>Position:</strong> <span id="player-position">&nbsp;</span>
+    <button id="up">up</button>
+    <span id="level"></span>
+    <button id="down">down</button>
   </div>
   <div id="map">
   </div>
@@ -44,6 +47,7 @@
   <div id="spacer">&nbsp;</div>
   <script>
 
+
 var colors = {
   0: "green",
   1: "darkgreen",
@@ -60,6 +64,9 @@ var login_box = document.getElementById("login-box");
 var dig = document.getElementById("dig");
 var input_box = document.getElementById("submit-input").msg;
 var loc = document.getElementById("loc");
+var up = document.getElementById("up");
+var down = document.getElementById("down");
+var level_label = document.getElementById("level");
 
 window.onload = function() {
   login_box.name.focus();
@@ -88,6 +95,40 @@ function output_log_message(msg_pat, msg) {
 function login(player_name) {
   var pos = "";
   var name = "";
+
+  var level = 7;
+  level_label.textContent = level;
+
+  var last_room_msg = null;
+
+  function draw_room(msg) {
+    var room = document.getElementById("room-name");
+    room.textContent = msg.data.room;
+    var map = document.getElementById("map-" + msg.data.room);
+    if (map) {
+      //console.log("MAP", map);
+      var map_ctx = map.getContext('2d');
+      loc.style.top = map.offsetTop + "px";
+      loc.style.left = map.offsetLeft + "px";
+    }
+
+    //console.log(data);
+    for (var y = 0; y < 16; y++) {
+      for (var x = 0; x < 16; x++) {
+        if (map) {
+          map_ctx.fillStyle = colors[msg.data.tiles[level][y][x]];
+          map_ctx.fillRect(x, y, 1, 1);
+        }
+        tileimages[y][x].src = "tiles/" + msg.data.tiles[level][y][x] + ".png";
+        var contentname = msg.data.contents[level][y][x];
+        if (!contentname) {
+          contentname = "transparent";
+        }
+        contentimages[y][x].src = "content/" + contentname + ".png";
+      }
+    }
+  }
+
   function add_player(pl) {
     var node = document.createElement("span");
     //console.log("add_player", pl);
@@ -101,6 +142,20 @@ function login(player_name) {
     node.style.top = (tile.offsetTop + 4) + "px";
     node.style.left = (tile.offsetLeft + 4) + "px";
     tileset.appendChild(node);
+  }
+
+  up.onclick = function(e) {
+    if (level === 15) return;
+    level = level + 1;
+    level_label.textContent = level;
+    draw_room(last_room_msg);
+  }
+
+  down.onclick = function(e) {
+    if (level === 0) return;
+    level = level - 1;
+    level_label.textContent = level;
+    draw_room(last_room_msg);
   }
 
   var socket = new eio.Socket('ws://localhost:8080/');
@@ -117,36 +172,12 @@ function login(player_name) {
       var msg = JSON.parse(data);
       //console.log('got message', data);
       if (msg.pattern === "room") {
-        var room = document.getElementById("room-name");
-        room.textContent = msg.data.room;
-        var map = document.getElementById("map-" + msg.data.room);
-        if (map) {
-          //console.log("MAP", map);
-          var map_ctx = map.getContext('2d');
-          loc.style.top = map.offsetTop + "px";
-          loc.style.left = map.offsetLeft + "px";
-        }
-
+        last_room_msg = msg;
         for (var i = 0; i < players.length; i++) {
           var pl = players[i];
           pl.parentNode.removeChild(pl);
         }
         players = [];
-        //console.log(data);
-        for (var y = 0; y < 16; y++) {
-          for (var x = 0; x < 16; x++) {
-            if (map) {
-              map_ctx.fillStyle = colors[msg.data.tiles[y][x]];
-              map_ctx.fillRect(x, y, 1, 1);
-            }
-            tileimages[y][x].src = "tiles/" + msg.data.tiles[y][x] + ".png";
-            var contentname = msg.data.contents[y][x];
-            if (!contentname) {
-              contentname = "transparent";
-            }
-            contentimages[y][x].src = "content/" + contentname + ".png";
-          }
-        }
         for (var i = 0; i < msg.data.players.length; i++) {
           if (msg.data.name === msg.data.players[i].name) {
             var player = document.getElementById("player-name");
@@ -159,6 +190,7 @@ function login(player_name) {
           }
           add_player(msg.data.players[i]);
         }
+        draw_room(msg);
       } else if (msg.pattern === "room_msg") {
         output_log_message(msg.pattern, msg.data.msg);
       } else if (msg.pattern === "room_join") {
@@ -223,7 +255,8 @@ function login(player_name) {
     return function(e) {
       //console.log("dig.value", dig.value, x, y);
       if (dig.value === "move") {
-        socket.send(JSON.stringify({pattern: 'go', data: "" + x + "," + y}));
+        console.log("move", x, y, level);
+        socket.send(JSON.stringify({pattern: 'go', data: "" + x + "," + y + "," + level}));
       } else if (dig.value === "link") {
         var link_destination = prompt("Enter room name or http url to link to:", "new-room");
         if (link_destination !== null) {

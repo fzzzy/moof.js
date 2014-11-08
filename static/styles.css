@@ -44,6 +44,13 @@ body {
   height: 2em;
 }
 
+
+.isometric {
+  transform: rotate(45deg) skew(-15deg, -15deg);
+  top: 10px;
+  right: 200px;
+}
+
 #tileset {
   position: fixed;
   top: 0px;
@@ -125,4 +132,3 @@ body {
 #inventory button {
   float: right;
 }
-

@@ -32,6 +32,7 @@ exports.listen = function(port, message_log, startup_actor) {
   console.log("Server listening on http://localhost:" + port + "/");
 
   engine.attach(http).on('connection', function (socket) {
+    console.log("onconnection", socket.id);
     let logged_in = false;
     let my_act = null;
 
