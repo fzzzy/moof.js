@@ -266,7 +266,7 @@ function login(player_name) {
       } else {
         socket.send(
           JSON.stringify(
-            {pattern: 'dig', data: {'dig': "" + x + "," + y, 'tile': dig.value}}));
+            {pattern: 'dig', data: {'dig': "" + x + "," + y + "," + level, 'tile': dig.value}}));
       }
     }
   }
