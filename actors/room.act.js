@@ -6,7 +6,11 @@ function random(max) {
 }
 
 function tile(x, y, z) {
-  return "" + x + "," + y + "," + z;
+  let name = "" + x + "," + y;
+  if (z !== undefined) {
+    rname = name + "," + z;
+  }
+  return name;
 }
 
 function tileval(tiles, x, y, z) {
@@ -164,7 +168,7 @@ function* main() {
       continue;
     }
     if (msg.pattern === 'load_room') {
-      console.log("load_room", my_x, my_y);
+      console.log("load_room", my_x + "," + my_y);
       tiles = msg.data.load_room;
     } else if (msg.pattern === 'join') {
       msg.data.addr = msg.data.join;
@@ -172,7 +176,7 @@ function* main() {
       let joiner_id = msg.data.join;
       let joiner = address(joiner_id);
 
-      console.log("join", joiner_id);
+      console.log("join", my_x + "," + my_y, joiner_id);
 
       participants[joiner_id] = {
         cast: joiner,
@@ -225,7 +229,6 @@ function* main() {
           addr: msg.data.player});
       }
     } else if (msg.pattern === 'go') {
-      console.log("server go", msg.data.go);
       let split = msg.data.go.split(","),
           parsed_x = parseInt(split[0]),
           parsed_y = parseInt(split[1]),
@@ -246,6 +249,7 @@ function* main() {
         }
       }
       let link = links[parsed_z][parsed_y][parsed_x];
+      console.log("go", msg.data.go, "link", link);
       if (link) {
         let player = address(msg.data.player);
         if (link.indexOf("http://") !== 0 && link.indexOf("https://") !== 0) {
@@ -257,6 +261,7 @@ function* main() {
       for (let i in participants) {
         participants[i].cast('room_go', {go: msg.data.go, addr: msg.data.player});
       }        
+      participants[msg.data.player].pos = msg.data.go;
     } else if (msg.pattern === 'dig') {
       let split = msg.data.dig.split(",");
       tiles[parseInt(split[2])][parseInt(split[1])][parseInt(split[0])] = parseInt(msg.data.tile);
