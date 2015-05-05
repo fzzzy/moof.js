@@ -210,7 +210,7 @@ function* main() {
         player('room_refuse_drop', {refuse_drop: msg.data.content});
       } else {
         contents[split_drop[1]][split_drop[0]] = msg.data.content;
-        
+
         for (let i in participants) {
           participants[i].cast(
             'room_drop', {drop: msg.data.drop, content: msg.data.content, announce: msg.data.announce});
@@ -233,7 +233,6 @@ function* main() {
           parsed_x = parseInt(split[0]),
           parsed_y = parseInt(split[1]),
           parsed_z = parseInt(split[2]);
-      //console.log(name, "links", links);
       let content = contents[parsed_z][parsed_y][parsed_x];
       if (content) {
         let player = address(msg.data.player);
@@ -260,7 +259,7 @@ function* main() {
       }
       for (let i in participants) {
         participants[i].cast('room_go', {go: msg.data.go, addr: msg.data.player});
-      }        
+      }
       participants[msg.data.player].pos = msg.data.go;
     } else if (msg.pattern === 'dig') {
       let split = msg.data.dig.split(",");
