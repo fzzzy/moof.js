@@ -2,6 +2,7 @@
 
 var gulp = require("gulp"),
   babel = require("gulp-babel"),
+  nodemon = require("gulp-nodemon"),
   run = require("gulp-run");
 
 gulp.task("clean", function () {
@@ -18,9 +19,18 @@ gulp.task("copy scripts", function () {
     pipe(gulp.dest("dist"));
 });
 
-gulp.task("default", ["static", "copy scripts"], function () {
+gulp.task("transform", ["static", "copy scripts"], function () {
   return gulp.src(["**/*.js",
     "!static/**/*", "!node_modules/**/*", "!dist/**/*", "!gulpfile.js"])
     .pipe(babel())
     .pipe(gulp.dest("dist"));
+});
+
+gulp.task("default", ["transform"], function () {
+  nodemon({
+    script: "helper.js",
+    ignore: ["dist", "**/node_modules"],
+    ext: "html css png js",
+    tasks: ["transform"]
+  });
 });

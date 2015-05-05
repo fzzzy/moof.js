@@ -9,6 +9,7 @@
     "gulp": "3.8.11",
     "gulp-babel": "5.1.0",
     "gulp-run": "1.6.8",
+    "gulp-nodemon": "2.0.2",
     "babel": "5.2.15",
     "node-uuid": "1.4.3",
     "engine.io": "1.5.1",
