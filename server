@@ -2,18 +2,19 @@
 
 "use strict";
 
+require("babel/polyfill");
+
 var startup_actor = null;
 if (process.argv.length === 3) {
   startup_actor = process.argv[2];
 }
 
-let debug = false;
-let spew = undefined;
+var debug = false;
+var spew = undefined;
 if (debug) {
-  spew = function(name, pat, data) { console.log(name, pat, data)};
+  spew = function (name, pat, data) { console.log(name, pat, data) };
 }
 
-let server = require("./server.js");
+var server = require("./server.js");
 
 server.listen(8080, spew, startup_actor);
-

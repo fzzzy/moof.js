@@ -1,12 +1,20 @@
 {
   "name": "moof.js",
   "description": "A multiuser web thing",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fzzzy/moof.js.git"
+  },
   "dependencies": {
-    "node-uuid": "1.4.1",
-    "engine.io": "1.0.3",
-    "mocha": "1.17.1",
-    "node-static": "0.7.3",
-    "selenium-webdriver": "2.42.0",
-    "istanbul": "git://github.com/fzzzy/istanbul.git#harmony"
+    "gulp": "3.8.11",
+    "gulp-babel": "5.1.0",
+    "gulp-run": "1.6.8",
+    "babel": "5.2.15",
+    "node-uuid": "1.4.3",
+    "engine.io": "1.5.1",
+    "mocha": "2.2.4",
+    "node-static": "0.7.6",
+    "selenium-webdriver": "2.45.1",
+    "istanbul": "0.3.13"
   }
 }

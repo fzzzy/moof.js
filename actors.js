@@ -12,7 +12,7 @@ function deepFreeze (o) {
   Object.freeze(o);
 
   Object.getOwnPropertyNames(o).forEach(function (prop) {
-    try {      
+    try {
       if (o.hasOwnProperty(prop)
       && o[prop] !== null
       && (typeof o[prop] === "object" || typeof o[prop] === "function")
@@ -20,10 +20,10 @@ function deepFreeze (o) {
         deepFreeze(o[prop]);
       }
     } catch (e) {
-      
+
     }
   });
-  
+
   return o;
 }
 
@@ -40,7 +40,8 @@ let allowed_global_names = [
   "Uint16Array", "Uint32Array", "Uint8Array", "Uint8ClampedArray",
   "Map", "Set", "WeakMap", "WeakSet",
   "ArrayBuffer", "DataView", "JSON", "Promise", "Proxy",
-  "setTimeout", "clearTimeout", "setInterval", "clearInterval"];
+  "setTimeout", "clearTimeout", "setInterval", "clearInterval",
+  "regeneratorRuntime", "_babelPolyfill"];
 
 let allowed_global_names_map = new Map();
 allowed_global_names_map["NaN"] = true;
@@ -69,7 +70,7 @@ for (let i in allowed_global_names) {
   }
 }
 
-let prefix = ('"use strict"; let name = arguments[0].name,' + 
+let prefix = ('"use strict"; var name = arguments[0].name,' +
     'console = arguments[0].console,' +
     'ui = arguments[0].ui,' +
     'sleep = arguments[0].sleep,' +
@@ -91,9 +92,9 @@ for (let i in global_names) {
 
 prefix += "_____ = true; arguments[0] = null;";
 
-let postfix = ('; try { ' +
+let postfix = (';\ntry { ' +
     'return main(); ' +
-    '} catch (e) { ' + 
+    '} catch (e) { ' +
     'return {next: function() { return {done: false, value: {} } }' +
     '} }');
 
@@ -155,7 +156,7 @@ exports.Vat = function Vat(global_logger, message_logger) {
         setTimeout(iterate, result.value.sleep, ctx);
       } else if (result.value.recv !== undefined) {
         process.nextTick(function() {
-          check_mailbox(ctx, result.value.recv, result.value.timeout);          
+          check_mailbox(ctx, result.value.recv, result.value.timeout);
         });
       }
     } else {
@@ -298,4 +299,3 @@ exports.Vat = function Vat(global_logger, message_logger) {
   this.spawn_code = spawn_code;
   this.spawn = spawn;
 };
-
