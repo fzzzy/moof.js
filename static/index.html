@@ -158,7 +158,7 @@ function login(player_name) {
     draw_room(last_room_msg);
   }
 
-  var socket = new eio.Socket('ws://localhost:8080/');
+  var socket = new eio.Socket('ws' + window.location.origin.slice(4));
   socket.on('open', function () {
     socket.send(
       JSON.stringify(
@@ -260,7 +260,7 @@ function login(player_name) {
       } else if (dig.value === "link") {
         var link_destination = prompt("Enter room name or http url to link to:", "new-room");
         if (link_destination !== null) {
-          socket.send(JSON.stringify({pattern: 'link', data: {link: link_destination, pos: "" + x + "," + y}}));        
+          socket.send(JSON.stringify({pattern: 'link', data: {link: link_destination, pos: "" + x + "," + y}}));
         }
         dig.value = "move";
       } else {
@@ -270,7 +270,7 @@ function login(player_name) {
       }
     }
   }
-  
+
   var tileset = document.getElementById("tileset");
   var tileimages = [];
   var contentset = document.getElementById("contentset");
@@ -292,7 +292,7 @@ function login(player_name) {
     div.textContent = content;
     div.appendChild(but);
     inv.appendChild(div);
-  }  
+  }
 
   for (var y = 0; y < 16; y++) {
     var row = document.createElement("div");
