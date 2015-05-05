@@ -1,7 +1,6 @@
 
 let {spawn} = require("child_process");
 
-
 exports.listen = function(port, message_log, startup_actor) {
   console.log("Server starting on port " + port + "...");
   let start = new Date();
