@@ -1,6 +1,8 @@
 
 "use strict";
 
+let {spawn} = require("child_process");
+
 exports.listen = function(port, message_log, startup_actor) {
   console.log("Server starting on port " + port + "...");
   let start = new Date();
@@ -23,7 +25,13 @@ exports.listen = function(port, message_log, startup_actor) {
 
   let http = require('http').createServer(function(request, response) {
     request.addListener('end', function() {
-      files.serve(request, response);
+      console.log(request.method, request.url);
+      if (request.url === "/webhook") {
+        spawn("git", ["pull"], {stdio: ["ignore", process.stdout, process.stderr]});
+        response.end("");
+      } else {
+        files.serve(request, response);
+      }
     }).resume();
   }).listen(port);
 
@@ -66,4 +74,3 @@ exports.listen = function(port, message_log, startup_actor) {
 
   return http;
 };
-
