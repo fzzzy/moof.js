@@ -1,6 +1,4 @@
 
-"use strict";
-
 let {spawn} = require("child_process");
 
 exports.listen = function(port, message_log, startup_actor) {
